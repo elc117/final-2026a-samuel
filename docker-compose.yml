@@ -8,6 +8,9 @@ services:
       DATABASE_URL: ${DATABASE_URL:-jdbc:postgresql://postgres:5432/gym_social}
       DATABASE_USER: ${POSTGRES_USER:-gym_social}
       DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-gym_social}
+      JWT_SECRET: ${JWT_SECRET:-development-only-secret-change-me-123456789}
+      CORS_ALLOWED_ORIGIN: ${CORS_ALLOWED_ORIGIN:-http://localhost:5173}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
     ports:
       - "${APP_PORT:-7000}:7000"
     depends_on:

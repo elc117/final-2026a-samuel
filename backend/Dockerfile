@@ -4,14 +4,14 @@ WORKDIR /app
 
 COPY --chown=gradle:gradle . .
 
-RUN gradle clean shadowJar --no-daemon
+RUN gradle clean test installDist --no-daemon
 
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-COPY --from=build /app/build/libs/*-all.jar app.jar
+COPY --from=build /app/build/install/gym-social-api/ /app/
 
 EXPOSE 7000
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["/app/bin/gym-social-api"]
