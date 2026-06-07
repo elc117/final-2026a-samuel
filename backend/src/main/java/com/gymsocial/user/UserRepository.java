@@ -11,7 +11,7 @@ import java.util.Optional;
 public final class UserRepository {
 
     private static final String FIND_BY_EMAIL = """
-        SELECT id, name, username, email, password_hash, profile_image_url,
+        SELECT id, name, username, email, password, profile_image_url,
                status, created_at, updated_at
         FROM users
         WHERE LOWER(email) = LOWER(?)
@@ -27,9 +27,10 @@ public final class UserRepository {
 
     private static final String INSERT = """
         INSERT INTO users (
-            id, name, username, email, password_hash, status, created_at, updated_at
+            name, username, email, password, status, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        RETURNING id
         """;
 
     private final DataSource dataSource;
@@ -63,20 +64,23 @@ public final class UserRepository {
         return exists(EXISTS_BY_USERNAME, username);
     }
 
-    public void save(User user) {
+    public User save(User user) {
         try (
             var connection = dataSource.getConnection();
             var statement = connection.prepareStatement(INSERT)
         ) {
-            statement.setObject(1, user.id());
-            statement.setString(2, user.name());
-            statement.setString(3, user.username());
-            statement.setString(4, user.email());
-            statement.setString(5, user.passwordHash());
-            statement.setString(6, user.status());
-            statement.setTimestamp(7, Timestamp.from(user.createdAt()));
-            statement.setTimestamp(8, Timestamp.from(user.updatedAt()));
-            statement.executeUpdate();
+            statement.setString(1, user.name());
+            statement.setString(2, user.username());
+            statement.setString(3, user.email());
+            statement.setString(4, user.passwordHash());
+            statement.setString(5, user.status());
+            statement.setTimestamp(6, Timestamp.from(user.createdAt()));
+            statement.setTimestamp(7, Timestamp.from(user.updatedAt()));
+
+            try (var resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return withId(user, resultSet.getLong("id"));
+            }
         } catch (SQLException exception) {
             if ("23505".equals(exception.getSQLState())) {
                 throw new ConflictException("E-mail ou usuário já cadastrado.");
@@ -103,15 +107,29 @@ public final class UserRepository {
 
     private User mapUser(ResultSet resultSet) throws SQLException {
         return new User(
-            resultSet.getObject("id", java.util.UUID.class),
+            resultSet.getLong("id"),
             resultSet.getString("name"),
             resultSet.getString("username"),
             resultSet.getString("email"),
-            resultSet.getString("password_hash"),
+            resultSet.getString("password"),
             resultSet.getString("profile_image_url"),
             resultSet.getString("status"),
             resultSet.getTimestamp("created_at").toInstant(),
             resultSet.getTimestamp("updated_at").toInstant()
+        );
+    }
+
+    private User withId(User user, long id) {
+        return new User(
+            id,
+            user.name(),
+            user.username(),
+            user.email(),
+            user.passwordHash(),
+            user.profileImageUrl(),
+            user.status(),
+            user.createdAt(),
+            user.updatedAt()
         );
     }
 }

@@ -16,6 +16,7 @@ dependencies {
     implementation 'com.auth0:java-jwt:4.5.0'
     implementation 'com.password4j:password4j:1.8.4'
     implementation 'com.zaxxer:HikariCP:7.0.2'
+    implementation 'org.hibernate.validator:hibernate-validator:9.1.0.Final'
     implementation 'org.flywaydb:flyway-core:11.20.0'
     implementation 'org.flywaydb:flyway-database-postgresql:11.20.0'
     implementation 'org.postgresql:postgresql:42.7.11'

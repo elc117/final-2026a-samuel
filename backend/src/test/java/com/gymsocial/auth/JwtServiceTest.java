@@ -5,7 +5,6 @@ import com.gymsocial.user.User;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,7 +13,7 @@ class JwtServiceTest {
 
     @Test
     void createsAccessTokenForUser() {
-        UUID userId = UUID.randomUUID();
+        long userId = 42L;
         Instant now = Instant.now();
         User user = new User(
             userId,
@@ -34,7 +33,7 @@ class JwtServiceTest {
         var decoded = JWT.decode(token);
 
         assertEquals("gym-social-api", decoded.getIssuer());
-        assertEquals(userId.toString(), decoded.getSubject());
+        assertEquals(String.valueOf(userId), decoded.getSubject());
         assertTrue(decoded.getExpiresAtAsInstant().isAfter(Instant.now()));
     }
 }

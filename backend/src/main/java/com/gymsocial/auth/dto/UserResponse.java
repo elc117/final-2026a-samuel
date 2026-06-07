@@ -2,10 +2,8 @@ package com.gymsocial.auth.dto;
 
 import com.gymsocial.user.User;
 
-import java.util.UUID;
-
 public record UserResponse(
-    UUID id,
+    Long id,
     String name,
     String username,
     String email,

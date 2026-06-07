@@ -1,10 +1,9 @@
 package com.gymsocial.user;
 
 import java.time.Instant;
-import java.util.UUID;
 
 public record User(
-    UUID id,
+    Long id,
     String name,
     String username,
     String email,

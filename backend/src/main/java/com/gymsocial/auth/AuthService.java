@@ -6,31 +6,34 @@ import com.gymsocial.auth.dto.RegisterRequest;
 import com.gymsocial.auth.dto.UserResponse;
 import com.gymsocial.shared.exception.ConflictException;
 import com.gymsocial.shared.exception.UnauthorizedException;
+import com.gymsocial.shared.validation.RequestValidator;
 import com.gymsocial.user.User;
 import com.gymsocial.user.UserRepository;
 
 import java.time.Instant;
 import java.util.Locale;
-import java.util.UUID;
 
 public final class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordHasher passwordHasher;
     private final JwtService jwtService;
+    private final RequestValidator requestValidator;
 
     public AuthService(
         UserRepository userRepository,
         PasswordHasher passwordHasher,
-        JwtService jwtService
+        JwtService jwtService,
+        RequestValidator requestValidator
     ) {
         this.userRepository = userRepository;
         this.passwordHasher = passwordHasher;
         this.jwtService = jwtService;
+        this.requestValidator = requestValidator;
     }
 
     public AuthResult register(RegisterRequest request) {
-        AuthValidator.validate(request);
+        requestValidator.validate(request);
 
         String email = normalize(request.email());
         String username = normalize(request.username());
@@ -44,7 +47,7 @@ public final class AuthService {
 
         Instant now = Instant.now();
         User user = new User(
-            UUID.randomUUID(),
+            null,
             request.name().trim(),
             username,
             email,
@@ -55,12 +58,12 @@ public final class AuthService {
             now
         );
 
-        userRepository.save(user);
-        return authenticated(user);
+        User savedUser = userRepository.save(user);
+        return authenticated(savedUser);
     }
 
     public AuthResult login(LoginRequest request) {
-        AuthValidator.validate(request);
+        requestValidator.validate(request);
 
         User user = userRepository.findByEmail(normalize(request.email()))
             .filter(found -> "ACTIVE".equals(found.status()))
