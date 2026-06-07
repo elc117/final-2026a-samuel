@@ -1,8 +1,7 @@
 import { Dumbbell } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { ApiError } from "../../../services/apiClient";
-import { getCurrentUser } from "../services/authService";
+import { restoreSession } from "../../../services/apiClient";
 
 type AuthGuardProps = {
   mode: "require" | "guest";
@@ -10,29 +9,22 @@ type AuthGuardProps = {
 
 type AuthStatus = "checking" | "authenticated" | "guest";
 
-export function AuthGuard({ mode }: AuthGuardProps) {
+function AuthGuard({ mode }: AuthGuardProps) {
   const [status, setStatus] = useState<AuthStatus>("checking");
 
   useEffect(() => {
     let active = true;
 
-    getCurrentUser()
-      .then(() => {
+    restoreSession()
+      .then((authenticated) => {
         if (active) {
-          setStatus("authenticated");
+          setStatus(authenticated ? "authenticated" : "guest");
         }
       })
-      .catch((error: unknown) => {
-        if (!active) {
-          return;
-        }
-
-        if (error instanceof ApiError && error.status === 401) {
+      .catch(() => {
+        if (active) {
           setStatus("guest");
-          return;
         }
-
-        setStatus("guest");
       });
 
     return () => {
@@ -53,6 +45,14 @@ export function AuthGuard({ mode }: AuthGuardProps) {
   }
 
   return <Outlet />;
+}
+
+export function GuestOnly() {
+  return <AuthGuard mode="guest" />;
+}
+
+export function RequireAuth() {
+  return <AuthGuard mode="require" />;
 }
 
 function AuthGuardLoading() {

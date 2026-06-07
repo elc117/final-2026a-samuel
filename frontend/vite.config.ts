@@ -12,6 +12,11 @@ export default defineConfig({
         target: "http://localhost:7000",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, ""),
+        configure: (proxy) => {
+          proxy.on("proxyReq", (proxyRequest) => {
+            proxyRequest.removeHeader("origin");
+          });
+        },
       },
     },
   },

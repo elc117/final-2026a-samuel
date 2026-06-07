@@ -32,7 +32,7 @@ export class ApiError extends Error {
 
 function buildHeaders({ body, headers: customHeaders }: RequestInit) {
   const headers = new Headers(customHeaders);
-  const shouldUseJson = body && !(body instanceof FormData);
+  const shouldUseJson = body !== undefined && !(body instanceof FormData);
   const accessToken = getAccessToken();
 
   if (shouldUseJson && !headers.has("Content-Type")) {
@@ -59,9 +59,13 @@ async function createApiError(response: Response): Promise<ApiError> {
     () => undefined,
   );
 
+  const fieldMessage = body?.errors
+    ? Object.values(body.errors)[0]
+    : undefined;
+
   return new ApiError(
     response.status,
-    body?.message ?? DEFAULT_ERROR_MESSAGE,
+    fieldMessage ?? body?.message ?? DEFAULT_ERROR_MESSAGE,
     body?.errors,
   );
 }
@@ -92,6 +96,14 @@ async function refreshAccessToken(): Promise<boolean> {
   }
 
   return refreshRequest;
+}
+
+export async function restoreSession(): Promise<boolean> {
+  if (getAccessToken()) {
+    return true;
+  }
+
+  return refreshAccessToken();
 }
 
 async function executeRequest<T>(path: string, options: RequestInit, allowRefresh: boolean): Promise<T> {

@@ -8,9 +8,13 @@ import com.gymsocial.shared.response.ErrorResponse;
 import io.javalin.config.JavalinConfig;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class ExceptionConfig {
 
+    private static final Logger LOGGER =
+        LoggerFactory.getLogger(ExceptionConfig.class);
     private static final String INVALID_BODY_MESSAGE =
         "Corpo da requisição inválido.";
 
@@ -36,15 +40,27 @@ public final class ExceptionConfig {
                 .status(HttpStatus.UNAUTHORIZED)
                 .json(new ErrorResponse(exception.getMessage()))
         );
-        config.routes.exception(BadRequestResponse.class, (exception, context) ->
+        config.routes.exception(BadRequestResponse.class, (exception, context) -> {
+            LOGGER.warn(
+                "Invalid request body on {} {}: {}",
+                context.method(),
+                context.path(),
+                exception.getMessage()
+            );
             context
                 .status(HttpStatus.BAD_REQUEST)
-                .json(new ErrorResponse(INVALID_BODY_MESSAGE))
-        );
-        config.routes.exception(JsonProcessingException.class, (exception, context) ->
+                .json(new ErrorResponse(INVALID_BODY_MESSAGE));
+        });
+        config.routes.exception(JsonProcessingException.class, (exception, context) -> {
+            LOGGER.warn(
+                "Could not parse JSON on {} {}: {}",
+                context.method(),
+                context.path(),
+                exception.getOriginalMessage()
+            );
             context
                 .status(HttpStatus.BAD_REQUEST)
-                .json(new ErrorResponse(INVALID_BODY_MESSAGE))
-        );
+                .json(new ErrorResponse(INVALID_BODY_MESSAGE));
+        });
     }
 }
