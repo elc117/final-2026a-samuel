@@ -28,7 +28,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
     return undefined as T;
   }
 
-  return response.json() as Promise<T>;
+  return await response.json() as Promise<T>;
 }
 
 async function createApiError(response: Response): Promise<ApiError> {
