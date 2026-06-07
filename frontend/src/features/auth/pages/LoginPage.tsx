@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../../../layouts/AuthLayout";
 import { getApiErrorMessage } from "../../../services/apiClient";
 import { AuthField } from "../components/AuthField";
@@ -13,6 +13,7 @@ import {
 import { login } from "../services/authService";
 
 export function LoginPage() {
+  const navigate = useNavigate();
   const [message, setMessage] = useState("");
   const [submitError, setSubmitError] = useState("");
   const {
@@ -33,8 +34,8 @@ export function LoginPage() {
     setSubmitError("");
 
     try {
-      const response = await login(data);
-      setMessage(`Bem-vindo de volta, ${response.user.name}!`);
+      await login(data);
+      navigate("/grupo", { replace: true });
     } catch (error) {
       setSubmitError(getApiErrorMessage(error));
     }

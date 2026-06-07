@@ -1,5 +1,6 @@
 package com.gymsocial.config;
 
+import com.gymsocial.group.GroupController;
 import io.javalin.config.JavalinConfig;
 
 public final class RouteConfig {
@@ -9,7 +10,8 @@ public final class RouteConfig {
 
     public static void register(
         JavalinConfig config,
-        AuthModule.Components auth
+        AuthModule.Components auth,
+        GroupController groupController
     ) {
         config.routes.get("/health", context ->
             context
@@ -21,5 +23,10 @@ public final class RouteConfig {
 
         config.routes.before("/auth/me", auth.middleware()::authenticate);
         config.routes.get("/auth/me", auth.controller()::me);
+
+        config.routes.before("/groups", auth.middleware()::authenticate);
+        config.routes.before("/groups/*", auth.middleware()::authenticate);
+        config.routes.get("/groups/me", groupController::current);
+        config.routes.post("/groups", groupController::create);
     }
 }

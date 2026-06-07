@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AtSign, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthLayout } from "../../../layouts/AuthLayout";
 import { getApiErrorMessage } from "../../../services/apiClient";
 import { AuthField } from "../components/AuthField";
@@ -13,6 +13,7 @@ import {
 import { register as registerUser } from "../services/authService";
 
 export function RegisterPage() {
+  const navigate = useNavigate();
   const [message, setMessage] = useState("");
   const [submitError, setSubmitError] = useState("");
   const {
@@ -37,14 +38,14 @@ export function RegisterPage() {
     setSubmitError("");
 
     try {
-      const response = await registerUser({
+      await registerUser({
         name: data.name,
         username: data.username,
         email: data.email,
         password: data.password,
       });
 
-      setMessage(`Conta criada com sucesso. Bem-vindo, ${response.user.name}!`);
+      navigate("/grupo", { replace: true });
     } catch (error) {
       setSubmitError(getApiErrorMessage(error));
     }
