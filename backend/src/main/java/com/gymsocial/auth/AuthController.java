@@ -21,7 +21,7 @@ public final class AuthController {
             context.bodyAsClass(RegisterRequest.class)
         );
 
-        setAccessTokenCookie(context, result.accessToken());
+        setRefreshTokenCookie(context, result.refreshToken());
         context.status(HttpStatus.CREATED).json(result.response());
     }
 
@@ -30,8 +30,25 @@ public final class AuthController {
             context.bodyAsClass(LoginRequest.class)
         );
 
-        setAccessTokenCookie(context, result.accessToken());
+        setRefreshTokenCookie(context, result.refreshToken());
         context.json(result.response());
+    }
+
+    public void refresh(Context context) {
+        AuthService.AuthResult result = authService.refresh(
+            context.cookie(RefreshTokenService.REFRESH_TOKEN_COOKIE)
+        );
+
+        setRefreshTokenCookie(context, result.refreshToken());
+        context.json(result.response());
+    }
+
+    public void logout(Context context) {
+        authService.logout(
+            context.cookie(RefreshTokenService.REFRESH_TOKEN_COOKIE)
+        );
+        clearRefreshTokenCookie(context);
+        context.status(HttpStatus.NO_CONTENT);
     }
 
     public void me(Context context) {
@@ -39,14 +56,40 @@ public final class AuthController {
         context.json(authService.currentUser(userId));
     }
 
-    private void setAccessTokenCookie(Context context, String token) {
-        long maxAge = JwtService.ACCESS_TOKEN_DURATION.toSeconds();
+    private void setRefreshTokenCookie(Context context, String refreshToken) {
+        addCookie(
+            context,
+            RefreshTokenService.REFRESH_TOKEN_COOKIE,
+            refreshToken,
+            "/",
+            RefreshTokenService.REFRESH_TOKEN_DURATION.toSeconds()
+        );
+    }
+
+    private void clearRefreshTokenCookie(Context context) {
+        addCookie(
+            context,
+            RefreshTokenService.REFRESH_TOKEN_COOKIE,
+            "",
+            "/",
+            0
+        );
+    }
+
+    private void addCookie(
+        Context context,
+        String name,
+        String value,
+        String path,
+        long maxAge
+    ) {
         String secureAttribute = cookieSecure ? "; Secure" : "";
 
-        context.header(
+        context.res().addHeader(
             "Set-Cookie",
-            JwtService.ACCESS_TOKEN_COOKIE + "=" + token +
-                "; Path=/; Max-Age=" + maxAge +
+            name + "=" + value +
+                "; Path=" + path +
+                "; Max-Age=" + maxAge +
                 "; HttpOnly; SameSite=Lax" +
                 secureAttribute
         );

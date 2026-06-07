@@ -8,6 +8,7 @@ import io.javalin.http.Context;
 
 public final class JwtAuthenticationMiddleware {
 
+    private static final String BEARER_PREFIX = "Bearer ";
     private static final String UNAUTHORIZED_MESSAGE =
         "Token de acesso ausente ou inválido.";
 
@@ -18,13 +19,22 @@ public final class JwtAuthenticationMiddleware {
     }
 
     public void authenticate(Context context) {
-        String token = context.cookie(JwtService.ACCESS_TOKEN_COOKIE);
+        String authorization = context.header("Authorization");
 
-        if (token == null || token.isBlank()) {
+        if (
+            authorization == null ||
+            !authorization.startsWith(BEARER_PREFIX)
+        ) {
             throw new UnauthorizedException(UNAUTHORIZED_MESSAGE);
         }
 
         try {
+            String token = authorization.substring(BEARER_PREFIX.length());
+
+            if (token.isBlank()) {
+                throw new IllegalArgumentException("Bearer token is missing");
+            }
+
             long userId = jwtService.verifyAccessToken(token);
             AuthenticatedUserContext.setUserId(context, userId);
         }

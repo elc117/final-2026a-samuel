@@ -4,6 +4,8 @@ import com.gymsocial.auth.AuthController;
 import com.gymsocial.auth.AuthService;
 import com.gymsocial.auth.JwtService;
 import com.gymsocial.auth.PasswordHasher;
+import com.gymsocial.auth.RefreshTokenRepository;
+import com.gymsocial.auth.RefreshTokenService;
 import com.gymsocial.config.middleware.JwtAuthenticationMiddleware;
 import com.gymsocial.shared.validation.RequestValidator;
 import com.gymsocial.user.UserRepository;
@@ -20,7 +22,14 @@ public final class AuthModule {
 
         var jwtService = new JwtService(appConfig.jwtSecret());
 
-        var authService = new AuthService(userRepository, new PasswordHasher(), jwtService, new RequestValidator());
+        var authService = new AuthService(
+            userRepository,
+            new PasswordHasher(),
+            jwtService,
+            new RefreshTokenService(),
+            new RefreshTokenRepository(dataSource),
+            new RequestValidator()
+        );
 
         return new Components(
             new AuthController(authService, appConfig.cookieSecure()),

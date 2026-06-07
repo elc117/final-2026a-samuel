@@ -12,23 +12,30 @@ import com.gymsocial.user.UserRepository;
 
 import java.time.Instant;
 import java.util.Locale;
+import java.util.UUID;
 
 public final class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordHasher passwordHasher;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final RequestValidator requestValidator;
 
     public AuthService(
         UserRepository userRepository,
         PasswordHasher passwordHasher,
         JwtService jwtService,
+        RefreshTokenService refreshTokenService,
+        RefreshTokenRepository refreshTokenRepository,
         RequestValidator requestValidator
     ) {
         this.userRepository = userRepository;
         this.passwordHasher = passwordHasher;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
+        this.refreshTokenRepository = refreshTokenRepository;
         this.requestValidator = requestValidator;
     }
 
@@ -78,6 +85,50 @@ public final class AuthService {
         return authenticated(user);
     }
 
+    public AuthResult refresh(String currentRefreshToken) {
+        if (currentRefreshToken == null || currentRefreshToken.isBlank()) {
+            throw new UnauthorizedException("Sessão expirada. Entre novamente.");
+        }
+
+        Instant now = Instant.now();
+        UUID replacementId = UUID.randomUUID();
+        String replacementToken = refreshTokenService.generateToken();
+        String replacementHash = refreshTokenService.hash(replacementToken);
+
+        long userId = refreshTokenRepository.rotate(
+            refreshTokenService.hash(currentRefreshToken),
+            replacementId,
+            replacementHash,
+            now,
+            now.plus(RefreshTokenService.REFRESH_TOKEN_DURATION)
+        ).orElseThrow(() ->
+            new UnauthorizedException("Sessão expirada. Entre novamente.")
+        );
+
+        User user = userRepository.findById(userId)
+            .filter(found -> "ACTIVE".equals(found.status()))
+            .orElseThrow(() ->
+                new UnauthorizedException("Sessão expirada. Entre novamente.")
+            );
+
+        return new AuthResult(
+            jwtService.createAccessToken(user),
+            replacementToken,
+            UserResponse.from(user)
+        );
+    }
+
+    public void logout(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return;
+        }
+
+        refreshTokenRepository.revoke(
+            refreshTokenService.hash(refreshToken),
+            Instant.now()
+        );
+    }
+
     public UserResponse currentUser(long userId) {
         return userRepository.findById(userId)
             .filter(user -> "ACTIVE".equals(user.status()))
@@ -88,9 +139,21 @@ public final class AuthService {
     }
 
     private AuthResult authenticated(User user) {
+        Instant now = Instant.now();
+        String refreshToken = refreshTokenService.generateToken();
+
+        refreshTokenRepository.create(
+            UUID.randomUUID(),
+            user.id(),
+            refreshTokenService.hash(refreshToken),
+            now,
+            now.plus(RefreshTokenService.REFRESH_TOKEN_DURATION)
+        );
+
         return new AuthResult(
             jwtService.createAccessToken(user),
-            new AuthResponse(UserResponse.from(user))
+            refreshToken,
+            UserResponse.from(user)
         );
     }
 
@@ -100,7 +163,11 @@ public final class AuthService {
 
     public record AuthResult(
         String accessToken,
-        AuthResponse response
+        String refreshToken,
+        UserResponse user
     ) {
+        public AuthResponse response() {
+            return new AuthResponse(accessToken, user);
+        }
     }
 }

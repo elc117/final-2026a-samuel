@@ -20,6 +20,8 @@ public final class RouteConfig {
         );
         config.routes.post("/auth/register", auth.controller()::register);
         config.routes.post("/auth/login", auth.controller()::login);
+        config.routes.post("/auth/refresh", auth.controller()::refresh);
+        config.routes.post("/auth/logout", auth.controller()::logout);
 
         config.routes.before("/auth/me", auth.middleware()::authenticate);
         config.routes.get("/auth/me", auth.controller()::me);

@@ -1,4 +1,8 @@
 import { apiRequest } from "../../../services/apiClient";
+import {
+  clearAccessToken,
+  setAccessToken,
+} from "./accessTokenStore";
 
 export type AuthUser = {
   id: number;
@@ -10,6 +14,7 @@ export type AuthUser = {
 };
 
 export type AuthResponse = {
+  accessToken: string;
   user: AuthUser;
 };
 
@@ -25,16 +30,38 @@ export type RegisterRequest = {
   password: string;
 };
 
-export function login(request: LoginRequest): Promise<AuthResponse> {
-  return apiRequest<AuthResponse>("/auth/login", {
+export async function login(request: LoginRequest): Promise<AuthResponse> {
+  const response = await apiRequest<AuthResponse>("/auth/login", {
     method: "POST",
     body: JSON.stringify(request),
   });
+
+  setAccessToken(response.accessToken);
+  return response;
 }
 
-export function register(request: RegisterRequest): Promise<AuthResponse> {
-  return apiRequest<AuthResponse>("/auth/register", {
+export async function register(
+  request: RegisterRequest,
+): Promise<AuthResponse> {
+  const response = await apiRequest<AuthResponse>("/auth/register", {
     method: "POST",
     body: JSON.stringify(request),
   });
+
+  setAccessToken(response.accessToken);
+  return response;
+}
+
+export function getCurrentUser(): Promise<AuthUser> {
+  return apiRequest<AuthUser>("/auth/me");
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await apiRequest<void>("/auth/logout", {
+      method: "POST",
+    });
+  } finally {
+    clearAccessToken();
+  }
 }
