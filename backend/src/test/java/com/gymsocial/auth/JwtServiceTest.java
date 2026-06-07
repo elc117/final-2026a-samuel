@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JwtServiceTest {
@@ -27,13 +28,43 @@ class JwtServiceTest {
             now
         );
 
-        String token = new JwtService(
+        JwtService jwtService = new JwtService(
             "test-secret-with-at-least-32-characters"
-        ).createAccessToken(user);
+        );
+        String token = jwtService.createAccessToken(user);
         var decoded = JWT.decode(token);
 
         assertEquals("gym-social-api", decoded.getIssuer());
         assertEquals(String.valueOf(userId), decoded.getSubject());
         assertTrue(decoded.getExpiresAtAsInstant().isAfter(Instant.now()));
+        assertEquals(userId, jwtService.verifyAccessToken(token));
+    }
+
+    @Test
+    void rejectsTokenSignedWithDifferentSecret() {
+        Instant now = Instant.now();
+        User user = new User(
+            42L,
+            "Samuel",
+            "samuel",
+            "samuel@example.com",
+            "hash",
+            null,
+            "ACTIVE",
+            now,
+            now
+        );
+
+        String token = new JwtService(
+            "first-test-secret-with-at-least-32-characters"
+        ).createAccessToken(user);
+        JwtService jwtService = new JwtService(
+            "second-test-secret-with-at-least-32-characters"
+        );
+
+        assertThrows(
+            RuntimeException.class,
+            () -> jwtService.verifyAccessToken(token)
+        );
     }
 }

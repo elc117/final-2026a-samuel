@@ -1,6 +1,5 @@
 package com.gymsocial.config;
 
-import com.gymsocial.auth.AuthController;
 import com.zaxxer.hikari.HikariDataSource;
 import io.javalin.Javalin;
 
@@ -12,7 +11,7 @@ public final class JavalinConfig {
     public static Javalin create(
         ApplicationConfig appConfig,
         HikariDataSource dataSource,
-        AuthController authController
+        AuthModule.Components auth
     ) {
         return Javalin.create(config -> {
             config.events.serverStopped(dataSource::close);
@@ -23,7 +22,7 @@ public final class JavalinConfig {
                 })
             );
 
-            RouteConfig.register(config, authController);
+            RouteConfig.register(config, auth);
             ExceptionConfig.register(config);
         });
     }

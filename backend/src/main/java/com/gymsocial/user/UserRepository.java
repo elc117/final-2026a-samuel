@@ -10,6 +10,13 @@ import java.util.Optional;
 
 public final class UserRepository {
 
+    private static final String FIND_BY_ID = """
+        SELECT id, name, username, email, password, profile_image_url,
+               status, created_at, updated_at
+        FROM users
+        WHERE id = ?
+        """;
+
     private static final String FIND_BY_EMAIL = """
         SELECT id, name, username, email, password, profile_image_url,
                status, created_at, updated_at
@@ -37,6 +44,23 @@ public final class UserRepository {
 
     public UserRepository(DataSource dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public Optional<User> findById(long id) {
+        try (
+            var connection = dataSource.getConnection();
+            var statement = connection.prepareStatement(FIND_BY_ID)
+        ) {
+            statement.setLong(1, id);
+
+            try (var resultSet = statement.executeQuery()) {
+                return resultSet.next()
+                    ? Optional.of(mapUser(resultSet))
+                    : Optional.empty();
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not query user", exception);
+        }
     }
 
     public Optional<User> findByEmail(String email) {

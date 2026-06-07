@@ -78,6 +78,15 @@ public final class AuthService {
         return authenticated(user);
     }
 
+    public UserResponse currentUser(long userId) {
+        return userRepository.findById(userId)
+            .filter(user -> "ACTIVE".equals(user.status()))
+            .map(UserResponse::from)
+            .orElseThrow(() ->
+                new UnauthorizedException("Usuário autenticado não encontrado.")
+            );
+    }
+
     private AuthResult authenticated(User user) {
         return new AuthResult(
             jwtService.createAccessToken(user),

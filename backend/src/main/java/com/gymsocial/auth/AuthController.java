@@ -2,6 +2,7 @@ package com.gymsocial.auth;
 
 import com.gymsocial.auth.dto.LoginRequest;
 import com.gymsocial.auth.dto.RegisterRequest;
+import com.gymsocial.shared.http.AuthenticatedUserContext;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 
@@ -31,6 +32,11 @@ public final class AuthController {
 
         setAccessTokenCookie(context, result.accessToken());
         context.json(result.response());
+    }
+
+    public void me(Context context) {
+        long userId = AuthenticatedUserContext.getUserId(context);
+        context.json(authService.currentUser(userId));
     }
 
     private void setAccessTokenCookie(Context context, String token) {
