@@ -12,7 +12,7 @@ class PasswordHasherTest {
 
     @Test
     void hashesAndVerifiesPassword() {
-        String password = "StrongPass1";
+        String password = "StrongPass1!";
         String hash = passwordHasher.hash(password);
 
         assertNotEquals(password, hash);

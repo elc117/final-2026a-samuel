@@ -19,7 +19,7 @@ class RequestValidatorTest {
             "Samuel Test",
             "samuel.test",
             "samuel@example.com",
-            "StrongPass1"
+            "StrongPass1!"
         );
 
         assertDoesNotThrow(() -> requestValidator.validate(request));

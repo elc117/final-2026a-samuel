@@ -11,7 +11,8 @@ const passwordSchema = z
   .min(8, "Use pelo menos 8 caracteres.")
   .regex(/[a-z]/, "Inclua pelo menos uma letra minúscula.")
   .regex(/[A-Z]/, "Inclua pelo menos uma letra maiúscula.")
-  .regex(/[0-9]/, "Inclua pelo menos um número.");
+  .regex(/[0-9]/, "Inclua pelo menos um número.")
+  .regex(/[^a-zA-Z0-9]/, "Inclua pelo menos um caractere especial.");
 
 export const loginSchema = z.object({
   email: emailSchema,

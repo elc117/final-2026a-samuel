@@ -45,6 +45,10 @@ public record RegisterRequest(
         regexp = ".*[0-9].*",
         message = "Inclua pelo menos um número."
     )
+    @Pattern(
+        regexp = ".*[^a-zA-Z0-9].*",
+        message = "Inclua pelo menos um caractere especial."
+    )
     String password
 ) {
 }
