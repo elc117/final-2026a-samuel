@@ -28,7 +28,10 @@ public record ApplicationConfig(
             required("DATABASE_USER"),
             required("DATABASE_PASSWORD"),
             jwtSecret,
-            optional("CORS_ALLOWED_ORIGIN", "http://localhost:5173"),
+            optional(
+                "CORS_ALLOWED_ORIGIN",
+                "http://localhost:5173,http://127.0.0.1:5173"
+            ),
             Boolean.parseBoolean(optional("COOKIE_SECURE", "false"))
         );
     }

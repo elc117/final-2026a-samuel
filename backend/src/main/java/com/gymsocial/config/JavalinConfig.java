@@ -17,12 +17,17 @@ public final class JavalinConfig {
     ) {
         return Javalin.create(config -> {
             config.events.serverStopped(dataSource::close);
-            config.bundledPlugins.enableCors(cors ->
-                cors.addRule(rule -> {
-                    rule.allowHost(appConfig.corsAllowedOrigin());
-                    rule.allowCredentials = true;
-                })
-            );
+            config.bundledPlugins.enableCors(cors -> {
+                for (
+                    String allowedOrigin :
+                    appConfig.corsAllowedOrigin().split(",")
+                ) {
+                    cors.addRule(rule -> {
+                        rule.allowHost(allowedOrigin.trim());
+                        rule.allowCredentials = true;
+                    });
+                }
+            });
 
             RouteConfig.register(config, auth, groupController);
             ExceptionConfig.register(config);
