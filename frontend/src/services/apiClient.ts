@@ -3,10 +3,15 @@ const DEFAULT_ERROR_MESSAGE = "Não foi possível concluir a solicitação.";
 
 type ErrorResponse = {
   message?: string;
+  errors?: Record<string, string>;
 };
 
 export class ApiError extends Error {
-  constructor(public readonly status: number, message: string) {
+  constructor(
+    public readonly status: number,
+    message: string,
+    public readonly errors: Record<string, string> = {},
+  ) {
     super(message);
     this.name = "ApiError";
   }
@@ -39,6 +44,7 @@ async function createApiError(response: Response): Promise<ApiError> {
   return new ApiError(
     response.status,
     body?.message ?? DEFAULT_ERROR_MESSAGE,
+    body?.errors,
   );
 }
 
@@ -57,4 +63,8 @@ export async function apiRequest<T>(
   }
 
   return parseResponse<T>(response);
+}
+
+export function getApiErrorMessage(error: unknown): string {
+  return error instanceof ApiError ? error.message : DEFAULT_ERROR_MESSAGE;
 }

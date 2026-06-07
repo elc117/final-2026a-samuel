@@ -4,14 +4,17 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { AuthLayout } from "../../../layouts/AuthLayout";
+import { getApiErrorMessage } from "../../../services/apiClient";
 import { AuthField } from "../components/AuthField";
 import {
   loginSchema,
   type LoginFormData,
 } from "../schemas/authSchemas";
+import { login } from "../services/authService";
 
 export function LoginPage() {
   const [message, setMessage] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const {
     register,
     handleSubmit,
@@ -25,13 +28,16 @@ export function LoginPage() {
     },
   });
 
-  async function onSubmit() {
+  async function onSubmit(data: LoginFormData) {
     setMessage("");
+    setSubmitError("");
 
-    await new Promise((resolve) => window.setTimeout(resolve, 450));
-    setMessage(
-      "Dados validados. A API de autenticação será conectada em seguida.",
-    );
+    try {
+      const response = await login(data);
+      setMessage(`Bem-vindo de volta, ${response.user.name}!`);
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error));
+    }
   }
 
   return (
@@ -76,8 +82,14 @@ export function LoginPage() {
           </div>
         </div>
 
+        {submitError && (
+          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            {submitError}
+          </p>
+        )}
+
         {message && (
-          <p role="status" className="rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-700">
+          <p role="status" className="rounded-xl bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
             {message}
           </p>
         )}

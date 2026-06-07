@@ -4,14 +4,17 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { AuthLayout } from "../../../layouts/AuthLayout";
+import { getApiErrorMessage } from "../../../services/apiClient";
 import { AuthField } from "../components/AuthField";
 import {
   registerSchema,
   type RegisterFormData,
 } from "../schemas/authSchemas";
+import { register as registerUser } from "../services/authService";
 
 export function RegisterPage() {
   const [message, setMessage] = useState("");
+  const [submitError, setSubmitError] = useState("");
   const {
     register,
     handleSubmit,
@@ -29,12 +32,22 @@ export function RegisterPage() {
     },
   });
 
-  async function onSubmit() {
+  async function onSubmit(data: RegisterFormData) {
     setMessage("");
-    await new Promise((resolve) => window.setTimeout(resolve, 450));
-    setMessage(
-      "Cadastro validado. A integração com a API será conectada em seguida.",
-    );
+    setSubmitError("");
+
+    try {
+      const response = await registerUser({
+        name: data.name,
+        username: data.username,
+        email: data.email,
+        password: data.password,
+      });
+
+      setMessage(`Conta criada com sucesso. Bem-vindo, ${response.user.name}!`);
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error));
+    }
   }
 
   return (
@@ -83,7 +96,7 @@ export function RegisterPage() {
           type="password"
           label="Senha"
           icon={LockKeyhole}
-          placeholder="Mínimo de 8 caracteres"
+          placeholder="8+ caracteres, maiúscula, número e símbolo"
           autoComplete="new-password"
           error={errors.password?.message}
           {...register("password")}
@@ -130,8 +143,14 @@ export function RegisterPage() {
           </p>
         )}
 
+        {submitError && (
+          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+            {submitError}
+          </p>
+        )}
+
         {message && (
-          <p role="status" className="rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-700">
+          <p role="status" className="rounded-xl bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
             {message}
           </p>
         )}
