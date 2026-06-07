@@ -1,22 +1,37 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { LockKeyhole, Mail } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { AuthLayout } from "../../../layouts/AuthLayout";
 import { AuthField } from "../components/AuthField";
+import {
+  loginSchema,
+  type LoginFormData,
+} from "../schemas/authSchemas";
 
 export function LoginPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    mode: "onBlur",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setIsSubmitting(true);
+  async function onSubmit() {
     setMessage("");
 
-    window.setTimeout(() => {
-      setIsSubmitting(false);
-      setMessage("A interface está pronta. A API de autenticação será conectada em seguida.");
-    }, 450);
+    await new Promise((resolve) => window.setTimeout(resolve, 450));
+    setMessage(
+      "Dados validados. A API de autenticação será conectada em seguida.",
+    );
   }
 
   return (
@@ -25,28 +40,31 @@ export function LoginPage() {
       title="Entre na sua conta"
       description="Continue acompanhando seus amigos e mantendo sua sequência de treinos."
     >
-      <form className="space-y-5" onSubmit={handleSubmit}>
+      <form
+        className="space-y-5"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
         <AuthField
           id="email"
-          name="email"
           type="email"
           label="E-mail"
           icon={Mail}
           placeholder="voce@exemplo.com"
           autoComplete="email"
-          required
+          error={errors.email?.message}
+          {...register("email")}
         />
         <div>
           <AuthField
             id="password"
-            name="password"
             type="password"
             label="Senha"
             icon={LockKeyhole}
             placeholder="Digite sua senha"
             autoComplete="current-password"
-            minLength={8}
-            required
+            error={errors.password?.message}
+            {...register("password")}
           />
           <div className="mt-2 flex justify-end">
             <button

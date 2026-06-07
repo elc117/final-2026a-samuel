@@ -1,5 +1,9 @@
 import { Eye, EyeOff, type LucideIcon } from "lucide-react";
-import { useState, type InputHTMLAttributes } from "react";
+import {
+  forwardRef,
+  useState,
+  type InputHTMLAttributes,
+} from "react";
 
 type AuthFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
@@ -7,14 +11,18 @@ type AuthFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
 };
 
-export function AuthField({
-  label,
-  icon: Icon,
-  error,
-  type = "text",
-  id,
-  ...props
-}: AuthFieldProps) {
+export const AuthField = forwardRef<HTMLInputElement, AuthFieldProps>(
+  function AuthField(
+    {
+      label,
+      icon: Icon,
+      error,
+      type = "text",
+      id,
+      ...props
+    },
+    ref,
+  ) {
   const [showPassword, setShowPassword] = useState(false);
   const isPassword = type === "password";
   const inputType = isPassword && showPassword ? "text" : type;
@@ -32,6 +40,7 @@ export function AuthField({
         />
         <input
           {...props}
+          ref={ref}
           id={id}
           type={inputType}
           aria-invalid={Boolean(error)}
@@ -62,4 +71,5 @@ export function AuthField({
       )}
     </div>
   );
-}
+  },
+);

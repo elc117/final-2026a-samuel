@@ -1,37 +1,39 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AtSign, LockKeyhole, Mail, UserRound } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import { AuthLayout } from "../../../layouts/AuthLayout";
 import { AuthField } from "../components/AuthField";
-
-type RegisterErrors = {
-  password?: string;
-  passwordConfirmation?: string;
-};
+import {
+  registerSchema,
+  type RegisterFormData,
+} from "../schemas/authSchemas";
 
 export function RegisterPage() {
-  const [errors, setErrors] = useState<RegisterErrors>({});
   const [message, setMessage] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    mode: "onBlur",
+    defaultValues: {
+      name: "",
+      username: "",
+      email: "",
+      password: "",
+      passwordConfirmation: "",
+      acceptedTerms: false,
+    },
+  });
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = new FormData(event.currentTarget);
-    const password = String(form.get("password"));
-    const passwordConfirmation = String(form.get("passwordConfirmation"));
-    const nextErrors: RegisterErrors = {};
-
-    if (password.length < 8) {
-      nextErrors.password = "Use pelo menos 8 caracteres.";
-    }
-    if (password !== passwordConfirmation) {
-      nextErrors.passwordConfirmation = "As senhas não coincidem.";
-    }
-
-    setErrors(nextErrors);
+  async function onSubmit() {
+    setMessage("");
+    await new Promise((resolve) => window.setTimeout(resolve, 450));
     setMessage(
-      Object.keys(nextErrors).length === 0
-        ? "Cadastro validado. A integração com a API será conectada em seguida."
-        : "",
+      "Cadastro validado. A integração com a API será conectada em seguida.",
     );
   }
 
@@ -41,65 +43,70 @@ export function RegisterPage() {
       title="Crie sua conta"
       description="Monte seu perfil e encontre motivação junto do seu grupo de treino."
     >
-      <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+      <form
+        className="space-y-4"
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
         <div className="grid gap-4 sm:grid-cols-2">
           <AuthField
             id="name"
-            name="name"
             label="Nome"
             icon={UserRound}
             placeholder="Seu nome"
             autoComplete="name"
-            required
+            error={errors.name?.message}
+            {...register("name")}
           />
           <AuthField
             id="username"
-            name="username"
             label="Usuário"
             icon={AtSign}
             placeholder="seu.usuario"
             autoComplete="username"
-            pattern="[a-zA-Z0-9._]+"
-            required
+            error={errors.username?.message}
+            {...register("username")}
           />
         </div>
         <AuthField
           id="register-email"
-          name="email"
           type="email"
           label="E-mail"
           icon={Mail}
           placeholder="voce@exemplo.com"
           autoComplete="email"
-          required
+          error={errors.email?.message}
+          {...register("email")}
         />
         <AuthField
           id="register-password"
-          name="password"
           type="password"
           label="Senha"
           icon={LockKeyhole}
           placeholder="Mínimo de 8 caracteres"
           autoComplete="new-password"
-          error={errors.password}
-          required
+          error={errors.password?.message}
+          {...register("password")}
         />
         <AuthField
           id="password-confirmation"
-          name="passwordConfirmation"
           type="password"
           label="Confirmar senha"
           icon={LockKeyhole}
           placeholder="Digite a senha novamente"
           autoComplete="new-password"
-          error={errors.passwordConfirmation}
-          required
+          error={errors.passwordConfirmation?.message}
+          {...register("passwordConfirmation")}
         />
 
         <label className="flex cursor-pointer items-start gap-3 pt-1 text-sm leading-5 text-zinc-500">
           <input
             type="checkbox"
-            required
+            {...register("acceptedTerms")}
+            aria-invalid={Boolean(errors.acceptedTerms)}
+            aria-describedby={
+              errors.acceptedTerms ? "accepted-terms-error" : undefined
+            }
             className="mt-0.5 size-4 shrink-0 accent-brand-600"
           />
           <span>
@@ -114,6 +121,14 @@ export function RegisterPage() {
             .
           </span>
         </label>
+        {errors.acceptedTerms && (
+          <p
+            id="accepted-terms-error"
+            className="-mt-2 text-sm font-medium text-red-600"
+          >
+            {errors.acceptedTerms.message}
+          </p>
+        )}
 
         {message && (
           <p role="status" className="rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-700">
@@ -123,9 +138,10 @@ export function RegisterPage() {
 
         <button
           type="submit"
-          className="flex h-12 w-full items-center justify-center rounded-xl bg-brand-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-red-200 transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-100"
+          disabled={isSubmitting}
+          className="flex h-12 w-full items-center justify-center rounded-xl bg-brand-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-red-200 transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-100 disabled:cursor-wait disabled:opacity-70"
         >
-          Criar minha conta
+          {isSubmitting ? "Criando conta..." : "Criar minha conta"}
         </button>
       </form>
 
