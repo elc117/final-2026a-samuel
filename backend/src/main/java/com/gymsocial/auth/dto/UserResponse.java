@@ -12,12 +12,16 @@ public record UserResponse(
 ) {
 
     public static UserResponse from(User user) {
+        return from(user, user.profileImageUrl());
+    }
+
+    public static UserResponse from(User user, String profileImageUrl) {
         return new UserResponse(
             user.id(),
             user.name(),
             user.username(),
             user.email(),
-            user.profileImageUrl(),
+            profileImageUrl,
             user.createdAt().toString()
         );
     }

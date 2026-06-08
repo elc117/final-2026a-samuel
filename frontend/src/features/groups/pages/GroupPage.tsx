@@ -7,11 +7,12 @@ import {
   ShieldCheck,
   Sparkles,
   Upload,
+  UserRound,
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BrandMark } from "../../auth/components/BrandMark";
 import {
   createGroupSchema,
@@ -161,9 +162,13 @@ export function GroupPage() {
       <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
           <BrandMark />
-          <span className="rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700">
-            Seu espaço de treino
-          </span>
+          <Link
+            to="/perfil"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm font-extrabold text-brand-700 transition hover:bg-brand-100"
+          >
+            <UserRound size={17} />
+            Meu perfil
+          </Link>
         </div>
       </header>
 

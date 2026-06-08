@@ -1,5 +1,6 @@
 package com.gymsocial.config;
 
+import com.gymsocial.shared.storage.MinioImageStorage;
 import io.javalin.Javalin;
 
 public final class ApplicationModule {
@@ -9,14 +10,20 @@ public final class ApplicationModule {
 
     public static Javalin create(ApplicationConfig appConfig) {
         var dataSource = DatabaseConfig.createDataSource(appConfig);
-        var auth = AuthModule.create(dataSource, appConfig);
-        var groupController = GroupModule.create(dataSource, appConfig);
+        var imageStorage = new MinioImageStorage(appConfig);
+        var auth = AuthModule.create(dataSource, appConfig, imageStorage);
+        var groupController = GroupModule.create(dataSource, imageStorage);
+        var userProfileController = UserProfileModule.create(
+            dataSource,
+            imageStorage
+        );
 
         return JavalinConfig.create(
             appConfig,
             dataSource,
             auth,
-            groupController
+            groupController,
+            userProfileController
         );
     }
 }

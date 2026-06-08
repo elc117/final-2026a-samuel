@@ -1,31 +1,30 @@
 package com.gymsocial.config;
 
-import com.gymsocial.group.GroupController;
-import com.gymsocial.group.GroupRepository;
-import com.gymsocial.group.GroupService;
 import com.gymsocial.shared.storage.ImageFileValidator;
 import com.gymsocial.shared.storage.ImageStorage;
 import com.gymsocial.shared.validation.RequestValidator;
+import com.gymsocial.user.UserProfileController;
+import com.gymsocial.user.UserProfileService;
+import com.gymsocial.user.UserRepository;
 
 import javax.sql.DataSource;
 
-public final class GroupModule {
+public final class UserProfileModule {
 
-    private GroupModule() {
+    private UserProfileModule() {
     }
 
-    public static GroupController create(
+    public static UserProfileController create(
         DataSource dataSource,
         ImageStorage imageStorage
     ) {
-        var repository = new GroupRepository(dataSource);
-        var service = new GroupService(
-            repository,
+        var service = new UserProfileService(
+            new UserRepository(dataSource),
             new RequestValidator(),
             new ImageFileValidator(),
             imageStorage
         );
 
-        return new GroupController(service);
+        return new UserProfileController(service);
     }
 }

@@ -1,6 +1,7 @@
 package com.gymsocial.config;
 
 import com.gymsocial.group.GroupController;
+import com.gymsocial.user.UserProfileController;
 import com.zaxxer.hikari.HikariDataSource;
 import io.javalin.Javalin;
 import io.javalin.config.SizeUnit;
@@ -14,7 +15,8 @@ public final class JavalinConfig {
         ApplicationConfig appConfig,
         HikariDataSource dataSource,
         AuthModule.Components auth,
-        GroupController groupController
+        GroupController groupController,
+        UserProfileController userProfileController
     ) {
         return Javalin.create(config -> {
             config.jetty.multipartConfig.maxFileSize(2L, SizeUnit.MB);
@@ -33,7 +35,12 @@ public final class JavalinConfig {
                 }
             });
 
-            RouteConfig.register(config, auth, groupController);
+            RouteConfig.register(
+                config,
+                auth,
+                groupController,
+                userProfileController
+            );
             ExceptionConfig.register(config);
         });
     }

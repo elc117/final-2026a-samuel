@@ -24,6 +24,21 @@ public final class UserRepository {
         WHERE LOWER(email) = LOWER(?)
         """;
 
+    private static final String FIND_PROFILE_BY_ID = """
+        SELECT u.id, u.name, u.username, u.email, u.password,
+               u.profile_image_url, u.status, u.created_at, u.updated_at,
+               COUNT(f.id) AS friend_count
+        FROM users u
+        LEFT JOIN friendships f
+            ON f.status = 'ACCEPTED'
+            AND (
+                f.requester_user_id = u.id OR
+                f.receiver_user_id = u.id
+            )
+        WHERE u.id = ?
+        GROUP BY u.id
+        """;
+
     private static final String EXISTS_BY_EMAIL = """
         SELECT EXISTS(SELECT 1 FROM users WHERE LOWER(email) = LOWER(?))
         """;
@@ -38,6 +53,14 @@ public final class UserRepository {
         )
         VALUES (?, ?, ?, ?, ?, ?, ?)
         RETURNING id
+        """;
+
+    private static final String UPDATE_PROFILE = """
+        UPDATE users
+        SET name = ?, profile_image_url = ?, updated_at = ?
+        WHERE id = ?
+        RETURNING id, name, username, email, password, profile_image_url,
+                  status, created_at, updated_at
         """;
 
     private final DataSource dataSource;
@@ -80,6 +103,29 @@ public final class UserRepository {
         }
     }
 
+    public Optional<UserProfile> findProfileById(long id) {
+        try (
+            var connection = dataSource.getConnection();
+            var statement = connection.prepareStatement(FIND_PROFILE_BY_ID)
+        ) {
+            statement.setLong(1, id);
+
+            try (var resultSet = statement.executeQuery()) {
+                return resultSet.next()
+                    ? Optional.of(new UserProfile(
+                        mapUser(resultSet),
+                        resultSet.getInt("friend_count")
+                    ))
+                    : Optional.empty();
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException(
+                "Could not query user profile",
+                exception
+            );
+        }
+    }
+
     public boolean existsByEmail(String email) {
         return exists(EXISTS_BY_EMAIL, email);
     }
@@ -110,6 +156,35 @@ public final class UserRepository {
                 throw new ConflictException("E-mail ou usuário já cadastrado.");
             }
             throw new IllegalStateException("Could not save user", exception);
+        }
+    }
+
+    public User updateProfile(
+        long userId,
+        String name,
+        String profileImageUrl
+    ) {
+        try (
+            var connection = dataSource.getConnection();
+            var statement = connection.prepareStatement(UPDATE_PROFILE)
+        ) {
+            statement.setString(1, name);
+            statement.setString(2, profileImageUrl);
+            statement.setTimestamp(3, Timestamp.from(java.time.Instant.now()));
+            statement.setLong(4, userId);
+
+            try (var resultSet = statement.executeQuery()) {
+                if (!resultSet.next()) {
+                    throw new IllegalStateException("User not found");
+                }
+
+                return mapUser(resultSet);
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException(
+                "Could not update user profile",
+                exception
+            );
         }
     }
 
@@ -155,5 +230,8 @@ public final class UserRepository {
             user.createdAt(),
             user.updatedAt()
         );
+    }
+
+    public record UserProfile(User user, int friendCount) {
     }
 }

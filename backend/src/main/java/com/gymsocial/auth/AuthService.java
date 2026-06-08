@@ -6,6 +6,7 @@ import com.gymsocial.auth.dto.RegisterRequest;
 import com.gymsocial.auth.dto.UserResponse;
 import com.gymsocial.shared.exception.ConflictException;
 import com.gymsocial.shared.exception.UnauthorizedException;
+import com.gymsocial.shared.storage.ImageStorage;
 import com.gymsocial.shared.validation.RequestValidator;
 import com.gymsocial.user.User;
 import com.gymsocial.user.UserRepository;
@@ -22,6 +23,7 @@ public final class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final RequestValidator requestValidator;
+    private final ImageStorage imageStorage;
 
     public AuthService(
         UserRepository userRepository,
@@ -29,7 +31,8 @@ public final class AuthService {
         JwtService jwtService,
         RefreshTokenService refreshTokenService,
         RefreshTokenRepository refreshTokenRepository,
-        RequestValidator requestValidator
+        RequestValidator requestValidator,
+        ImageStorage imageStorage
     ) {
         this.userRepository = userRepository;
         this.passwordHasher = passwordHasher;
@@ -37,6 +40,7 @@ public final class AuthService {
         this.refreshTokenService = refreshTokenService;
         this.refreshTokenRepository = refreshTokenRepository;
         this.requestValidator = requestValidator;
+        this.imageStorage = imageStorage;
     }
 
     public AuthResult register(RegisterRequest request) {
@@ -114,7 +118,7 @@ public final class AuthService {
         return new AuthResult(
             jwtService.createAccessToken(user),
             replacementToken,
-            UserResponse.from(user)
+            toUserResponse(user)
         );
     }
 
@@ -132,7 +136,7 @@ public final class AuthService {
     public UserResponse currentUser(long userId) {
         return userRepository.findById(userId)
             .filter(user -> "ACTIVE".equals(user.status()))
-            .map(UserResponse::from)
+            .map(this::toUserResponse)
             .orElseThrow(() ->
                 new UnauthorizedException("Usuário autenticado não encontrado.")
             );
@@ -153,8 +157,16 @@ public final class AuthService {
         return new AuthResult(
             jwtService.createAccessToken(user),
             refreshToken,
-            UserResponse.from(user)
+            toUserResponse(user)
         );
+    }
+
+    private UserResponse toUserResponse(User user) {
+        String profileImageUrl = user.profileImageUrl() == null
+            ? null
+            : imageStorage.createReadUrl(user.profileImageUrl());
+
+        return UserResponse.from(user, profileImageUrl);
     }
 
     private String normalize(String value) {
