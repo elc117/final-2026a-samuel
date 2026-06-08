@@ -5,6 +5,7 @@ import { GuestOnly, RequireAuth } from "./features/auth/components/AuthGuard";
 import { GroupPage } from "./features/groups/pages/GroupPage";
 import { GroupInvitationPage } from "./features/groups/pages/GroupInvitationPage";
 import { GroupSectionPage } from "./features/groups/pages/GroupSectionPage";
+import { CreateCheckInPage } from "./features/checkins/pages/CreateCheckInPage";
 import { ProfilePage } from "./features/profile/pages/ProfilePage";
 
 export default function App() {
@@ -22,7 +23,7 @@ export default function App() {
         />
         <Route
           path="/grupo/check-in"
-          element={<GroupSectionPage section="check-in" />}
+          element={<CreateCheckInPage />}
         />
         <Route
           path="/grupo/detalhes"

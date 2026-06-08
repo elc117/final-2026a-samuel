@@ -1,9 +1,9 @@
-import {ArrowLeft, CirclePlus, Info, Trophy, type LucideIcon} from "lucide-react";
+import { ArrowLeft, Info, Trophy, type LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
 import { GroupNavigation } from "../components/GroupNavigation";
 
-type GroupSection = "ranking" | "check-in" | "details";
+type GroupSection = "ranking" | "details";
 
 type SectionContent = {
   eyebrow: string;
@@ -19,13 +19,6 @@ const sectionContent: Record<GroupSection, SectionContent> = {
     description:
       "A classificação dos participantes aparecerá aqui quando os desafios forem implementados.",
     icon: Trophy,
-  },
-  "check-in": {
-    eyebrow: "Registrar atividade",
-    title: "Fazer check-in",
-    description:
-      "O formulário para publicar fotos e exercícios será implementado nesta área.",
-    icon: CirclePlus,
   },
   details: {
     eyebrow: "Informações",

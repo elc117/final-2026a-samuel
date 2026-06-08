@@ -4,6 +4,7 @@ import {
   Camera,
   Check,
   ChevronDown,
+  Clock,
   Copy,
   Dumbbell,
   Image,
@@ -39,6 +40,10 @@ import {
 } from "../../../shared/images/ImageCompressor";
 import { Dropdown } from "../../../shared/components/Dropdown";
 import { getGroupInviteLink } from "../services/groupInvitationService";
+import {
+  getCheckIns,
+  type CheckIn,
+} from "../../checkins/services/checkInService";
 
 const GROUP_IMAGE_OPTIONS = {
   maxWidth: 1200,
@@ -51,6 +56,7 @@ const GROUP_IMAGE_OPTIONS = {
 export function GroupPage() {
   const navigate = useNavigate();
   const [group, setGroup] = useState<Group | null>(null);
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number>();
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -85,11 +91,12 @@ export function GroupPage() {
   useEffect(() => {
     let active = true;
 
-    Promise.all([getCurrentGroup(), getCurrentUser()])
-      .then(([currentGroup, currentUser]) => {
+    Promise.all([getCurrentGroup(), getCurrentUser(), getCheckIns()])
+      .then(([currentGroup, currentUser, currentCheckIns]) => {
         if (active) {
           setGroup(currentGroup);
           setCurrentUserId(currentUser.id);
+          setCheckIns(currentCheckIns);
         }
       })
       .catch((error: unknown) => {
@@ -184,6 +191,7 @@ export function GroupPage() {
         <CurrentGroup
           group={group}
           isAdministrator={group.adminUserId === currentUserId}
+          checkIns={checkIns}
         />
       ) : (
         <CreateGroup
@@ -378,9 +386,11 @@ function CreateGroup({
 function CurrentGroup({
   group,
   isAdministrator,
+  checkIns,
 }: {
   group: Group;
   isAdministrator: boolean;
+  checkIns: CheckIn[];
 }) {
   const [inviteLink, setInviteLink] = useState("");
   const [inviteError, setInviteError] = useState("");
@@ -554,20 +564,28 @@ function CurrentGroup({
               </div>
             </div>
 
-            <div className="mt-6 grid min-h-56 place-items-center rounded-3xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
-              <div className="max-w-sm">
-                <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
-                  <Dumbbell size={22} />
-                </span>
-                <h3 className="mt-4 font-extrabold text-ink-950">
-                  Nenhum check-in por enquanto
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-zinc-500">
-                  As fotos e os exercícios publicados pelos membros aparecerão
-                  aqui.
-                </p>
+            {checkIns.length === 0 ? (
+              <div className="mt-6 grid min-h-56 place-items-center rounded-3xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
+                <div className="max-w-sm">
+                  <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+                    <Dumbbell size={22} />
+                  </span>
+                  <h3 className="mt-4 font-extrabold text-ink-950">
+                    Nenhum check-in por enquanto
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-zinc-500">
+                    As fotos e os exercícios publicados pelos membros aparecerão
+                    aqui.
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mt-6 grid w-full gap-4">
+                {checkIns.map((checkIn) => (
+                  <CheckInCard key={checkIn.id} checkIn={checkIn} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -577,6 +595,58 @@ function CurrentGroup({
 }
 
 type IconComponent = typeof Users;
+
+function CheckInCard({ checkIn }: { checkIn: CheckIn }) {
+  return (
+    <article className="flex w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-2 shadow-sm">
+      <img
+        src={checkIn.imageUrl}
+        alt={`Check-in: ${checkIn.title}`}
+        className="size-14 shrink-0 rounded-lg border border-zinc-300 bg-zinc-100 object-contain p-1"
+      />
+      <div className="flex min-w-0 flex-1 flex-col px-3 py-1 sm:px-4">
+        <h3 className="truncate text-sm font-black text-ink-950 sm:text-base">
+          {checkIn.title}
+        </h3>
+
+        {checkIn.description && (
+          <p className="mt-0.5 line-clamp-1 whitespace-pre-wrap text-xs leading-5 text-zinc-500 sm:text-sm">
+            {checkIn.description}
+          </p>
+        )}
+
+        <div className="mt-auto flex min-w-0 items-center justify-between gap-3 pt-1">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="grid size-6 shrink-0 overflow-hidden rounded-md bg-brand-50 text-[10px] font-black text-brand-700">
+              {checkIn.authorImageUrl ? (
+                <img
+                  src={checkIn.authorImageUrl}
+                  alt=""
+                  className="size-full object-cover"
+                />
+              ) : (
+                <span className="m-auto">
+                  {(checkIn.authorName?.trim().charAt(0) || "?").toUpperCase()}
+                </span>
+              )}
+            </span>
+            <p className="truncate text-xs font-extrabold text-ink-950 sm:text-sm">
+              {checkIn.authorName ?? "Membro do grupo"}
+            </p>
+          </div>
+
+          <p className="flex shrink-0 items-center gap-1 text-[10px] text-zinc-500 sm:text-xs">
+            <Clock size={12} />
+            {new Intl.DateTimeFormat("pt-BR", {
+              dateStyle: "short",
+              timeStyle: "short",
+            }).format(new Date(checkIn.createdAt))}
+          </p>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 function InfoCard({
   icon: Icon,

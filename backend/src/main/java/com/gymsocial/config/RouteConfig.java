@@ -1,5 +1,6 @@
 package com.gymsocial.config;
 
+import com.gymsocial.checkin.CheckInController;
 import com.gymsocial.group.GroupController;
 import com.gymsocial.group.invitation.GroupInvitationController;
 import com.gymsocial.user.UserProfileController;
@@ -15,7 +16,8 @@ public final class RouteConfig {
         AuthModule.Components auth,
         GroupController groupController,
         GroupInvitationController groupInvitationController,
-        UserProfileController userProfileController
+        UserProfileController userProfileController,
+        CheckInController checkInController
     ) {
         config.routes.get("/health", context ->
             context
@@ -55,5 +57,9 @@ public final class RouteConfig {
         config.routes.before("/users/me", auth.middleware()::authenticate);
         config.routes.get("/users/me", userProfileController::current);
         config.routes.put("/users/me", userProfileController::update);
+
+        config.routes.before("/check-ins", auth.middleware()::authenticate);
+        config.routes.get("/check-ins", checkInController::list);
+        config.routes.post("/check-ins", checkInController::create);
     }
 }
