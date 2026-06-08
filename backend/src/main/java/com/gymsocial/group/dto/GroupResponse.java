@@ -13,12 +13,16 @@ public record GroupResponse(
     String createdAt
 ) {
 
-    public static GroupResponse from(Group group, int memberCount) {
+    public static GroupResponse from(
+        Group group,
+        String imageUrl,
+        int memberCount
+    ) {
         return new GroupResponse(
             group.id(),
             group.adminUserId(),
             group.name(),
-            group.imageUrl(),
+            imageUrl,
             memberCount,
             group.createdAt().toString()
         );

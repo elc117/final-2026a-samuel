@@ -2,8 +2,11 @@ package com.gymsocial.group;
 
 import com.gymsocial.group.dto.CreateGroupRequest;
 import com.gymsocial.shared.http.AuthenticatedUserContext;
+import com.gymsocial.shared.storage.ImageUpload;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+
+import java.io.IOException;
 
 public final class GroupController {
 
@@ -22,11 +25,20 @@ public final class GroupController {
         );
     }
 
-    public void create(Context context) {
+    public void create(Context context) throws IOException {
         long userId = AuthenticatedUserContext.getUserId(context);
+        var uploadedFile = context.uploadedFile("image");
+        ImageUpload image = uploadedFile == null
+            ? null
+            : new ImageUpload(
+                uploadedFile.filename(),
+                uploadedFile.contentType(),
+                uploadedFile.content().readAllBytes()
+            );
         var response = groupService.create(
             userId,
-            context.bodyAsClass(CreateGroupRequest.class)
+            new CreateGroupRequest(context.formParam("name")),
+            image
         );
 
         context.status(HttpStatus.CREATED).json(response);

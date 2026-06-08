@@ -3,6 +3,7 @@ package com.gymsocial.config;
 import com.gymsocial.group.GroupController;
 import com.zaxxer.hikari.HikariDataSource;
 import io.javalin.Javalin;
+import io.javalin.config.SizeUnit;
 
 public final class JavalinConfig {
 
@@ -16,6 +17,9 @@ public final class JavalinConfig {
         GroupController groupController
     ) {
         return Javalin.create(config -> {
+            config.jetty.multipartConfig.maxFileSize(2L, SizeUnit.MB);
+            config.jetty.multipartConfig.maxInMemoryFileSize(2, SizeUnit.MB);
+            config.jetty.multipartConfig.maxTotalRequestSize(3L, SizeUnit.MB);
             config.events.serverStopped(dataSource::close);
             config.bundledPlugins.enableCors(cors -> {
                 for (

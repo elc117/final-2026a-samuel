@@ -6,6 +6,7 @@ import {
   Image,
   ShieldCheck,
   Sparkles,
+  Upload,
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -25,6 +26,18 @@ import {
   ApiError,
   getApiErrorMessage,
 } from "../../../services/apiClient";
+import {
+  ImageCompressionError,
+  ImageCompressor,
+} from "../../../shared/images/ImageCompressor";
+
+const GROUP_IMAGE_OPTIONS = {
+  maxWidth: 1200,
+  maxHeight: 1200,
+  maxInputBytes: 8 * 1024 * 1024,
+  maxOutputBytes: 1024 * 1024,
+  outputType: "image/webp",
+} as const;
 
 export function GroupPage() {
   const navigate = useNavigate();
@@ -32,6 +45,10 @@ export function GroupPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [submitError, setSubmitError] = useState("");
+  const [imageError, setImageError] = useState("");
+  const [groupImage, setGroupImage] = useState<File>();
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [isCompressing, setIsCompressing] = useState(false);
   const {
     register,
     handleSubmit,
@@ -42,12 +59,18 @@ export function GroupPage() {
     mode: "onBlur",
     defaultValues: {
       name: "",
-      imageUrl: "",
     },
   });
 
   const groupName = useWatch({ control, name: "name" });
-  const imageUrl = useWatch({ control, name: "imageUrl" });
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl]);
 
   useEffect(() => {
     let active = true;
@@ -87,7 +110,7 @@ export function GroupPage() {
     try {
       const createdGroup = await createGroup({
         name: data.name,
-        imageUrl: data.imageUrl || undefined,
+        image: groupImage,
       });
       setGroup(createdGroup);
     } catch (error) {
@@ -97,6 +120,35 @@ export function GroupPage() {
       }
 
       setSubmitError(getApiErrorMessage(error));
+    }
+  }
+
+  async function selectGroupImage(file?: File) {
+    setImageError("");
+
+    if (!file) {
+      return;
+    }
+
+    setIsCompressing(true);
+
+    try {
+      const compressedImage = await ImageCompressor.compress(
+        file,
+        GROUP_IMAGE_OPTIONS,
+      );
+      setGroupImage(compressedImage);
+      setImagePreviewUrl(URL.createObjectURL(compressedImage));
+    } catch (error) {
+      setGroupImage(undefined);
+      setImagePreviewUrl("");
+      setImageError(
+        error instanceof ImageCompressionError
+          ? error.message
+          : "Não foi possível processar a imagem.",
+      );
+    } finally {
+      setIsCompressing(false);
     }
   }
 
@@ -126,11 +178,15 @@ export function GroupPage() {
       ) : (
         <CreateGroup
           groupName={groupName}
-          imageUrl={imageUrl}
+          imagePreviewUrl={imagePreviewUrl}
+          imageName={groupImage?.name}
+          imageError={imageError}
+          isCompressing={isCompressing}
           register={register}
           errors={errors}
           isSubmitting={isSubmitting}
           submitError={submitError}
+          onImageSelected={selectGroupImage}
           onSubmit={handleSubmit(onSubmit)}
         />
       )}
@@ -140,21 +196,29 @@ export function GroupPage() {
 
 type CreateGroupProps = {
   groupName: string;
-  imageUrl: string;
+  imagePreviewUrl: string;
+  imageName?: string;
+  imageError: string;
+  isCompressing: boolean;
   register: ReturnType<typeof useForm<CreateGroupFormData>>["register"];
   errors: ReturnType<typeof useForm<CreateGroupFormData>>["formState"]["errors"];
   isSubmitting: boolean;
   submitError: string;
+  onImageSelected: (file?: File) => Promise<void>;
   onSubmit: React.FormEventHandler<HTMLFormElement>;
 };
 
 function CreateGroup({
   groupName,
-  imageUrl,
+  imagePreviewUrl,
+  imageName,
+  imageError,
+  isCompressing,
   register,
   errors,
   isSubmitting,
   submitError,
+  onImageSelected,
   onSubmit,
 }: CreateGroupProps) {
   return (
@@ -189,9 +253,9 @@ function CreateGroup({
       <div className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-2xl shadow-zinc-200/70">
         <div className="grid sm:grid-cols-[0.78fr_1.22fr]">
           <div className="relative min-h-60 overflow-hidden bg-brand-600 p-7 text-white sm:min-h-full">
-            {imageUrl && URL.canParse(imageUrl) ? (
+            {imagePreviewUrl ? (
               <img
-                src={imageUrl}
+                src={imagePreviewUrl}
                 alt=""
                 className="absolute inset-0 size-full object-cover"
               />
@@ -229,19 +293,51 @@ function CreateGroup({
               error={errors.name?.message}
               {...register("name")}
             />
-            <GroupField
-              id="group-image"
-              type="url"
-              label="URL da imagem"
-              placeholder="https://exemplo.com/foto.jpg"
-              error={errors.imageUrl?.message}
-              {...register("imageUrl")}
-            />
+            <div>
+              <span className="mb-2 block text-sm font-extrabold text-zinc-700">
+                Imagem do grupo
+              </span>
+              <label
+                htmlFor="group-image-file"
+                className="flex min-h-28 cursor-pointer items-center gap-4 rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-4 transition hover:border-brand-400 hover:bg-brand-50/40"
+              >
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-brand-600 shadow-sm">
+                  <Upload size={20} />
+                </span>
+                <span className="min-w-0">
+                  <strong className="block truncate text-sm text-zinc-800">
+                    {isCompressing
+                      ? "Comprimindo imagem..."
+                      : imageName ?? "Escolher imagem do computador"}
+                  </strong>
+                  <span className="mt-1 block text-xs leading-5 text-zinc-500">
+                    JPEG, PNG ou WebP. Até 8 MB antes da compressão.
+                  </span>
+                </span>
+              </label>
+              <input
+                id="group-image-file"
+                name="image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                disabled={isCompressing || isSubmitting}
+                onChange={(event) => {
+                  void onImageSelected(event.target.files?.[0]);
+                  event.target.value = "";
+                }}
+              />
+              {imageError && (
+                <p className="mt-2 text-sm font-medium text-red-600" role="alert">
+                  {imageError}
+                </p>
+              )}
+            </div>
 
             <div className="flex items-start gap-3 rounded-2xl bg-zinc-50 p-4 text-xs leading-5 text-zinc-500">
               <Camera className="mt-0.5 shrink-0 text-brand-600" size={17} />
-              A imagem é opcional. Nesta versão, use o endereço público de uma
-              foto.
+              A imagem é opcional e será comprimida para WebP antes do envio.
+              O arquivo armazenado terá no máximo 1 MB.
             </div>
 
             {submitError && (
@@ -252,11 +348,15 @@ function CreateGroup({
 
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isCompressing}
               className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 text-sm font-extrabold text-white shadow-lg shadow-red-200 transition hover:bg-brand-700 focus:outline-none focus:ring-4 focus:ring-brand-100 disabled:cursor-wait disabled:opacity-70"
             >
-              {isSubmitting ? "Criando grupo..." : "Criar meu grupo"}
-              {!isSubmitting && <ArrowRight size={18} />}
+              {isSubmitting
+                ? "Criando grupo..."
+                : isCompressing
+                  ? "Preparando imagem..."
+                  : "Criar meu grupo"}
+              {!isSubmitting && !isCompressing && <ArrowRight size={18} />}
             </button>
           </form>
         </div>

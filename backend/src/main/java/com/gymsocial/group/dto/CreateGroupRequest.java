@@ -10,12 +10,6 @@ public record CreateGroupRequest(
         max = 100,
         message = "O nome do grupo deve ter entre 3 e 100 caracteres."
     )
-    String name,
-
-    @Size(
-        max = 2048,
-        message = "A URL da imagem deve ter no máximo 2048 caracteres."
-    )
-    String imageUrl
+    String name
 ) {
 }

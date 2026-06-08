@@ -7,7 +7,13 @@ public record ApplicationConfig(
     String databasePassword,
     String jwtSecret,
     String corsAllowedOrigin,
-    boolean cookieSecure
+    boolean cookieSecure,
+    String s3Endpoint,
+    String s3PublicEndpoint,
+    String s3AccessKey,
+    String s3SecretKey,
+    String s3Bucket,
+    String s3Region
 ) {
 
     private static final int DEFAULT_PORT = 7000;
@@ -32,7 +38,13 @@ public record ApplicationConfig(
                 "CORS_ALLOWED_ORIGIN",
                 "http://localhost:5173,http://127.0.0.1:5173"
             ),
-            Boolean.parseBoolean(optional("COOKIE_SECURE", "false"))
+            Boolean.parseBoolean(optional("COOKIE_SECURE", "false")),
+            required("S3_ENDPOINT"),
+            required("S3_PUBLIC_ENDPOINT"),
+            required("S3_ACCESS_KEY"),
+            required("S3_SECRET_KEY"),
+            required("S3_BUCKET"),
+            optional("S3_REGION", "us-east-1")
         );
     }
 

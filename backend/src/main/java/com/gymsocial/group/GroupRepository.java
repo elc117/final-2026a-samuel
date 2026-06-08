@@ -58,8 +58,12 @@ public final class GroupRepository {
         }
     }
 
-    public Group create(long adminUserId, String name, String imageUrl) {
-        UUID groupId = UUID.randomUUID();
+    public Group create(
+        UUID groupId,
+        long adminUserId,
+        String name,
+        String imageUrl
+    ) {
         Instant now = Instant.now();
 
         try (var connection = dataSource.getConnection()) {

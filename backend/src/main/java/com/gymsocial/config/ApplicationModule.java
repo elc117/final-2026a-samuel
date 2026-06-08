@@ -10,7 +10,7 @@ public final class ApplicationModule {
     public static Javalin create(ApplicationConfig appConfig) {
         var dataSource = DatabaseConfig.createDataSource(appConfig);
         var auth = AuthModule.create(dataSource, appConfig);
-        var groupController = GroupModule.create(dataSource);
+        var groupController = GroupModule.create(dataSource, appConfig);
 
         return JavalinConfig.create(
             appConfig,
