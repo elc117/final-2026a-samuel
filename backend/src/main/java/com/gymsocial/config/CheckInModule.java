@@ -3,6 +3,8 @@ package com.gymsocial.config;
 import com.gymsocial.checkin.CheckInController;
 import com.gymsocial.checkin.CheckInRepository;
 import com.gymsocial.checkin.CheckInService;
+import com.gymsocial.checkin.comment.CheckInCommentController;
+import com.gymsocial.checkin.comment.CheckInCommentRepository;
 import com.gymsocial.shared.storage.ImageFileValidator;
 import com.gymsocial.shared.storage.ImageStorage;
 import com.gymsocial.shared.validation.RequestValidator;
@@ -14,7 +16,7 @@ public final class CheckInModule {
     private CheckInModule() {
     }
 
-    public static CheckInController create(
+    public static Components create(
         DataSource dataSource,
         ImageStorage imageStorage
     ) {
@@ -25,6 +27,18 @@ public final class CheckInModule {
             imageStorage
         );
 
-        return new CheckInController(service);
+        return new Components(
+            new CheckInController(service),
+            new CheckInCommentController(
+                new CheckInCommentRepository(dataSource),
+                imageStorage
+            )
+        );
+    }
+
+    public record Components(
+        CheckInController checkInController,
+        CheckInCommentController commentController
+    ) {
     }
 }

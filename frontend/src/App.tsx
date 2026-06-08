@@ -6,6 +6,7 @@ import { GroupPage } from "./features/groups/pages/GroupPage";
 import { GroupInvitationPage } from "./features/groups/pages/GroupInvitationPage";
 import { GroupSectionPage } from "./features/groups/pages/GroupSectionPage";
 import { CreateCheckInPage } from "./features/checkins/pages/CreateCheckInPage";
+import { CheckInDetailsPage } from "./features/checkins/pages/CheckInDetailsPage";
 import { ProfilePage } from "./features/profile/pages/ProfilePage";
 
 export default function App() {
@@ -24,6 +25,10 @@ export default function App() {
         <Route
           path="/grupo/check-in"
           element={<CreateCheckInPage />}
+        />
+        <Route
+          path="/grupo/check-ins/:checkInId"
+          element={<CheckInDetailsPage />}
         />
         <Route
           path="/grupo/detalhes"

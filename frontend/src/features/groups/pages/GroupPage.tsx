@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
 import { getCurrentUser } from "../../auth/services/authService";
 import { GroupNavigation } from "../components/GroupNavigation";
@@ -598,11 +598,14 @@ type IconComponent = typeof Users;
 
 function CheckInCard({ checkIn }: { checkIn: CheckIn }) {
   return (
-    <article className="flex w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-2 shadow-sm">
+    <Link
+      to={`/grupo/check-ins/${checkIn.id}`}
+      className="flex w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-2 shadow-sm transition hover:border-brand-200 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-brand-50"
+    >
       <img
         src={checkIn.imageUrl}
         alt={`Check-in: ${checkIn.title}`}
-        className="size-14 shrink-0 rounded-lg border border-zinc-300 bg-zinc-100 object-contain p-1"
+        className="size-14 shrink-0 rounded-lg border border-zinc-300 bg-zinc-100 object-cover"
       />
       <div className="flex min-w-0 flex-1 flex-col px-3 py-1 sm:px-4">
         <h3 className="truncate text-sm font-black text-ink-950 sm:text-base">
@@ -644,7 +647,7 @@ function CheckInCard({ checkIn }: { checkIn: CheckIn }) {
           </p>
         </div>
       </div>
-    </article>
+    </Link>
   );
 }
 

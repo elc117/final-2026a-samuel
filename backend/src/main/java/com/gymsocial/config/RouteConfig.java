@@ -1,6 +1,5 @@
 package com.gymsocial.config;
 
-import com.gymsocial.checkin.CheckInController;
 import com.gymsocial.group.GroupController;
 import com.gymsocial.group.invitation.GroupInvitationController;
 import com.gymsocial.user.UserProfileController;
@@ -17,7 +16,7 @@ public final class RouteConfig {
         GroupController groupController,
         GroupInvitationController groupInvitationController,
         UserProfileController userProfileController,
-        CheckInController checkInController
+        CheckInModule.Components checkIn
     ) {
         config.routes.get("/health", context ->
             context
@@ -59,7 +58,16 @@ public final class RouteConfig {
         config.routes.put("/users/me", userProfileController::update);
 
         config.routes.before("/check-ins", auth.middleware()::authenticate);
-        config.routes.get("/check-ins", checkInController::list);
-        config.routes.post("/check-ins", checkInController::create);
+        config.routes.before("/check-ins/*", auth.middleware()::authenticate);
+        config.routes.get("/check-ins", checkIn.checkInController()::list);
+        config.routes.post("/check-ins", checkIn.checkInController()::create);
+        config.routes.get(
+            "/check-ins/{checkInId}/comments",
+            checkIn.commentController()::list
+        );
+        config.routes.post(
+            "/check-ins/{checkInId}/comments",
+            checkIn.commentController()::create
+        );
     }
 }

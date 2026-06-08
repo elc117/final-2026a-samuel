@@ -1,6 +1,5 @@
 package com.gymsocial.config;
 
-import com.gymsocial.checkin.CheckInController;
 import com.gymsocial.group.GroupController;
 import com.gymsocial.group.invitation.GroupInvitationController;
 import com.gymsocial.user.UserProfileController;
@@ -20,7 +19,7 @@ public final class JavalinConfig {
         GroupController groupController,
         GroupInvitationController groupInvitationController,
         UserProfileController userProfileController,
-        CheckInController checkInController
+        CheckInModule.Components checkIn
     ) {
         return Javalin.create(config -> {
             config.jetty.multipartConfig.maxFileSize(2L, SizeUnit.MB);
@@ -45,7 +44,7 @@ public final class JavalinConfig {
                 groupController,
                 groupInvitationController,
                 userProfileController,
-                checkInController
+                checkIn
             );
             ExceptionConfig.register(config);
         });

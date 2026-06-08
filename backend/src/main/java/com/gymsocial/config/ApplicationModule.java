@@ -21,7 +21,7 @@ public final class ApplicationModule {
             dataSource,
             imageStorage
         );
-        var checkInController = CheckInModule.create(dataSource, imageStorage);
+        var checkIn = CheckInModule.create(dataSource, imageStorage);
 
         return JavalinConfig.create(
             appConfig,
@@ -30,7 +30,7 @@ public final class ApplicationModule {
             groupController,
             groupInvitationController,
             userProfileController,
-            checkInController
+            checkIn
         );
     }
 }
