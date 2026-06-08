@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  ArrowLeft,
   Camera,
   Check,
   Dumbbell,
@@ -10,8 +9,8 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
-import { BrandMark } from "../../auth/components/BrandMark";
+import { useNavigate } from "react-router-dom";
+import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
 import {
   ImageCompressionError,
   ImageCompressor,
@@ -153,18 +152,7 @@ export function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-5 sm:px-8">
-          <BrandMark />
-          <Link
-            to="/grupo"
-            className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-extrabold text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-950"
-          >
-            <ArrowLeft size={18} />
-            Voltar ao grupo
-          </Link>
-        </div>
-      </header>
+      <AuthenticatedHeader page="profile" />
 
       {loadError || !profile ? (
         <section className="mx-auto max-w-3xl px-5 py-20 text-center sm:px-8">

@@ -14,12 +14,11 @@ type GroupInviteLinkResponse = {
   token: string;
 };
 
-export async function createGroupInviteLink(
+export async function getGroupInviteLink(
   groupId: string,
 ): Promise<string> {
   const response = await apiRequest<GroupInviteLinkResponse>(
     `/groups/${groupId}/invite-link`,
-    { method: "POST" },
   );
 
   return `${window.location.origin}/convite/${response.token}`;

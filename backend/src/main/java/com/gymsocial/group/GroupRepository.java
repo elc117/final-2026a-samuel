@@ -35,6 +35,13 @@ public final class GroupRepository {
         VALUES (?, ?, ?)
         """;
 
+    private static final String INSERT_INVITE_LINK = """
+        INSERT INTO group_invite_links (
+            token, group_id, created_by_user_id, created_at
+        )
+        VALUES (?, ?, ?, ?)
+        """;
+
     private final DataSource dataSource;
 
     public GroupRepository(DataSource dataSource) {
@@ -87,6 +94,7 @@ public final class GroupRepository {
         try {
             insertGroup(connection, group);
             insertAdminAsMember(connection, group);
+            insertInviteLink(connection, group);
             connection.commit();
             return group;
         } catch (SQLException exception) {
@@ -116,6 +124,17 @@ public final class GroupRepository {
             statement.setObject(1, group.id());
             statement.setLong(2, group.adminUserId());
             statement.setTimestamp(3, Timestamp.from(group.createdAt()));
+            statement.executeUpdate();
+        }
+    }
+
+    private void insertInviteLink(Connection connection, Group group)
+        throws SQLException {
+        try (var statement = connection.prepareStatement(INSERT_INVITE_LINK)) {
+            statement.setObject(1, UUID.randomUUID());
+            statement.setObject(2, group.id());
+            statement.setLong(3, group.adminUserId());
+            statement.setTimestamp(4, Timestamp.from(group.createdAt()));
             statement.executeUpdate();
         }
     }

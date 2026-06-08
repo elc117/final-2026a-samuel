@@ -15,11 +15,11 @@ public final class GroupInvitationController {
         this.service = service;
     }
 
-    public void createOrFindLink(Context context) {
+    public void findLink(Context context) {
         long userId = AuthenticatedUserContext.getUserId(context);
         UUID groupId = parseUuid(context.pathParam("groupId"));
 
-        context.json(service.createOrFindLink(groupId, userId));
+        context.json(service.findLink(groupId, userId));
     }
 
     public void findByToken(Context context) {

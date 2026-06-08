@@ -23,13 +23,13 @@ public final class GroupInvitationService {
         this.imageStorage = imageStorage;
     }
 
-    public GroupInviteLinkResponse createOrFindLink(
+    public GroupInviteLinkResponse findLink(
         UUID groupId,
         long userId
     ) {
-        UUID token = repository.createOrFindLink(groupId, userId)
+        UUID token = repository.findLink(groupId, userId)
             .orElseThrow(() -> new ForbiddenException(
-                "Somente o administrador pode criar o link de convite."
+                "Somente integrantes do grupo podem acessar o link de convite."
             ));
 
         return new GroupInviteLinkResponse(token);

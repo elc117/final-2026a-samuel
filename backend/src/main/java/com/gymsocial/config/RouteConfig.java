@@ -34,9 +34,9 @@ public final class RouteConfig {
         config.routes.before("/groups/*", auth.middleware()::authenticate);
         config.routes.get("/groups/me", groupController::current);
         config.routes.post("/groups", groupController::create);
-        config.routes.post(
+        config.routes.get(
             "/groups/{groupId}/invite-link",
-            groupInvitationController::createOrFindLink
+            groupInvitationController::findLink
         );
 
         config.routes.before(

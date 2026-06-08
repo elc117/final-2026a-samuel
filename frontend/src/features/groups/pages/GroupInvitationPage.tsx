@@ -1,7 +1,6 @@
 import {
   ArrowRight,
   Dumbbell,
-  ShieldCheck,
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -121,8 +120,7 @@ export function GroupInvitationPage() {
               </div>
 
               <div className="p-6 sm:p-8">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="flex items-center gap-3 rounded-2xl bg-zinc-50 p-4">
+                <div className="flex items-center justify-center gap-3 rounded-2xl bg-zinc-50 p-4 text-center">
                     <Users className="text-brand-600" size={21} />
                     <div>
                       <strong className="block text-sm text-ink-950">
@@ -133,18 +131,6 @@ export function GroupInvitationPage() {
                         participantes
                       </span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3 rounded-2xl bg-zinc-50 p-4">
-                    <ShieldCheck className="text-brand-600" size={21} />
-                    <div>
-                      <strong className="block text-sm text-ink-950">
-                        Link permanente
-                      </strong>
-                      <span className="text-xs text-zinc-500">
-                        válido enquanto o grupo existir
-                      </span>
-                    </div>
-                  </div>
                 </div>
 
                 <p className="mt-6 text-center text-sm leading-6 text-zinc-500">

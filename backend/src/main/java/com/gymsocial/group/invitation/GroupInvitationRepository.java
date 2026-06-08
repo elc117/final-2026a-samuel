@@ -13,15 +13,11 @@ import java.util.UUID;
 
 public final class GroupInvitationRepository {
 
-    private static final String CREATE_OR_FIND_LINK = """
-        INSERT INTO group_invite_links (
-            token, group_id, created_by_user_id, created_at
-        )
-        SELECT ?, g.id, ?, ?
-        FROM groups g
-        WHERE g.id = ? AND g.admin_user_id = ?
-        ON CONFLICT (group_id) DO UPDATE SET group_id = EXCLUDED.group_id
-        RETURNING token
+    private static final String FIND_LINK = """
+        SELECT l.token
+        FROM group_members gm
+        JOIN group_invite_links l ON l.group_id = gm.group_id
+        WHERE gm.group_id = ? AND gm.user_id = ?
         """;
 
     private static final String FIND_INVITATION = """
@@ -71,19 +67,16 @@ public final class GroupInvitationRepository {
         this.dataSource = dataSource;
     }
 
-    public Optional<UUID> createOrFindLink(
+    public Optional<UUID> findLink(
         UUID groupId,
         long userId
     ) {
         try (
             var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement(CREATE_OR_FIND_LINK)
+            var statement = connection.prepareStatement(FIND_LINK)
         ) {
-            statement.setObject(1, UUID.randomUUID());
+            statement.setObject(1, groupId);
             statement.setLong(2, userId);
-            statement.setTimestamp(3, Timestamp.from(Instant.now()));
-            statement.setObject(4, groupId);
-            statement.setLong(5, userId);
 
             try (var resultSet = statement.executeQuery()) {
                 return resultSet.next()
@@ -92,7 +85,7 @@ public final class GroupInvitationRepository {
             }
         } catch (SQLException exception) {
             throw new IllegalStateException(
-                "Could not create group invite link",
+                "Could not query group invite link",
                 exception
             );
         }

@@ -3,20 +3,21 @@ import {
   ArrowRight,
   Camera,
   Check,
+  ChevronDown,
   Copy,
   Dumbbell,
   Image,
-  Link2,
   ShieldCheck,
   Sparkles,
+  Trophy,
   Upload,
-  UserRound,
+  UserPlus,
   Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
-import { BrandMark } from "../../auth/components/BrandMark";
+import { useNavigate } from "react-router-dom";
+import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
 import { getCurrentUser } from "../../auth/services/authService";
 import {
   createGroupSchema,
@@ -35,7 +36,8 @@ import {
   ImageCompressionError,
   ImageCompressor,
 } from "../../../shared/images/ImageCompressor";
-import { createGroupInviteLink } from "../services/groupInvitationService";
+import { Dropdown } from "../../../shared/components/Dropdown";
+import { getGroupInviteLink } from "../services/groupInvitationService";
 
 const GROUP_IMAGE_OPTIONS = {
   maxWidth: 1200,
@@ -166,18 +168,7 @@ export function GroupPage() {
 
   return (
     <main className="min-h-screen bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 sm:px-8">
-          <BrandMark />
-          <Link
-            to="/perfil"
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-sm font-extrabold text-brand-700 transition hover:bg-brand-100"
-          >
-            <UserRound size={17} />
-            Meu perfil
-          </Link>
-        </div>
-      </header>
+      <AuthenticatedHeader page="group" />
 
       {loadError ? (
         <section className="mx-auto max-w-3xl px-5 py-20 text-center sm:px-8">
@@ -389,23 +380,28 @@ function CurrentGroup({
 }) {
   const [inviteLink, setInviteLink] = useState("");
   const [inviteError, setInviteError] = useState("");
-  const [isCreatingLink, setIsCreatingLink] = useState(false);
+  const [isLoadingLink, setIsLoadingLink] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  async function generateInviteLink() {
+  async function loadInviteLink() {
     setInviteError("");
     setCopied(false);
-    setIsCreatingLink(true);
+    setIsLoadingLink(true);
 
     try {
-      const link = await createGroupInviteLink(group.id);
+      const link = await getGroupInviteLink(group.id);
       setInviteLink(link);
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
+
+      try {
+        await navigator.clipboard.writeText(link);
+        setCopied(true);
+      } catch {
+        setInviteError("Link gerado. Copie-o pelo botão ao lado.");
+      }
     } catch (error) {
       setInviteError(getApiErrorMessage(error));
     } finally {
-      setIsCreatingLink(false);
+      setIsLoadingLink(false);
     }
   }
 
@@ -432,6 +428,93 @@ function CurrentGroup({
             <div className="auth-grid absolute inset-0 opacity-40" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+          <div className="absolute right-5 top-5 z-10 sm:right-7 sm:top-7">
+            <Dropdown
+              ariaLabel="Abrir ações do grupo"
+              menuClassName="right-0 mt-2 w-72 overflow-hidden rounded-2xl border border-zinc-200 bg-white p-2 text-zinc-800 shadow-2xl"
+              trigger={({ isOpen }) => (
+                <span className="flex items-center gap-2 rounded-xl bg-white/95 px-4 py-2.5 text-sm font-extrabold text-zinc-800 shadow-lg backdrop-blur transition hover:bg-white">
+                  Ações
+                  <ChevronDown
+                    size={17}
+                    className={`transition ${isOpen ? "rotate-180" : ""}`}
+                  />
+                </span>
+              )}
+            >
+              <div>
+              <button
+                type="button"
+                role="menuitem"
+                disabled={isLoadingLink}
+                onClick={() => void loadInviteLink()}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-zinc-50 disabled:cursor-wait disabled:opacity-60"
+              >
+                <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
+                  {copied ? <Check size={18} /> : <UserPlus size={18} />}
+                </span>
+                <span>
+                  <strong className="block text-sm">
+                    {isLoadingLink
+                      ? "Carregando convite..."
+                      : copied
+                        ? "Link copiado"
+                        : "Convidar pessoas"}
+                  </strong>
+                  <span className="mt-0.5 block text-xs text-zinc-500">
+                    Copiar link de convite
+                  </span>
+                </span>
+              </button>
+
+              {inviteLink && (
+                <div className="m-1 mt-2 flex items-center gap-2 rounded-xl bg-zinc-50 p-2 pl-3">
+                  <span className="min-w-0 flex-1 truncate text-xs text-zinc-500">
+                    {inviteLink}
+                  </span>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => void copyInviteLink()}
+                    className="grid size-8 shrink-0 place-items-center rounded-lg bg-white text-zinc-700 shadow-sm transition hover:text-brand-600"
+                    aria-label="Copiar link de convite"
+                  >
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                  </button>
+                </div>
+              )}
+
+              {inviteError && (
+                <p className="m-1 mt-2 rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                  {inviteError}
+                </p>
+              )}
+
+              {isAdministrator && (
+                <>
+                  <div className="my-2 border-t border-zinc-100" />
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled
+                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl px-3 py-3 text-left opacity-55"
+                    title="A criação de desafios será implementada em breve."
+                  >
+                    <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
+                      <Trophy size={18} />
+                    </span>
+                    <span>
+                      <strong className="block text-sm">Criar desafio</strong>
+                      <span className="mt-0.5 block text-xs text-zinc-500">
+                        Disponível em breve
+                      </span>
+                    </span>
+                  </button>
+                </>
+              )}
+              </div>
+            </Dropdown>
+          </div>
           <div className="absolute inset-x-0 bottom-0 p-7 text-white sm:p-10">
             <p className="text-xs font-black uppercase tracking-[0.18em] text-white/70">
               Seu grupo
@@ -444,88 +527,44 @@ function CurrentGroup({
                 <Users size={17} />
                 {group.memberCount} de 10 participantes
               </span>
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold backdrop-blur">
-                <ShieldCheck size={17} />
-                Administrador
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid gap-6 p-7 sm:grid-cols-3 sm:p-10">
-          <GroupAction
-            icon={Users}
-            title="Participantes"
-            description="Convide amigos para completar sua equipe."
-          />
-          <GroupAction
-            icon={Dumbbell}
-            title="Publicações"
-            description="Os treinos do grupo aparecerão aqui."
-          />
-          <GroupAction
-            icon={Sparkles}
-            title="Desafios"
-            description="Crie a primeira meta coletiva do grupo."
-          />
-        </div>
-
-        {isAdministrator && (
-          <div className="border-t border-zinc-200 p-7 sm:p-10">
-            <div className="rounded-3xl bg-zinc-950 p-6 text-white sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-8">
-              <div className="max-w-xl">
-                <span className="grid size-11 place-items-center rounded-2xl bg-white/10">
-                  <Link2 size={21} />
+              {isAdministrator && (
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold backdrop-blur">
+                  <ShieldCheck size={17} />
+                  Administrador
                 </span>
-                <h2 className="mt-5 text-xl font-black">
-                  Convide pessoas para o grupo
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-zinc-400">
-                  O link é permanente e continuará válido enquanto este grupo
-                  existir.
-                </p>
-              </div>
-
-              <div className="mt-6 min-w-0 sm:mt-0 sm:w-full sm:max-w-md">
-                {inviteLink && (
-                  <div className="mb-3 flex items-center gap-2 rounded-xl bg-white/10 p-2 pl-4">
-                    <span className="min-w-0 flex-1 truncate text-xs text-zinc-300">
-                      {inviteLink}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => void copyInviteLink()}
-                      className="grid size-9 shrink-0 place-items-center rounded-lg bg-white text-zinc-950 transition hover:bg-zinc-200"
-                      aria-label="Copiar link"
-                    >
-                      {copied ? <Check size={17} /> : <Copy size={17} />}
-                    </button>
-                  </div>
-                )}
-                {inviteError && (
-                  <p className="mb-3 rounded-xl bg-red-500/15 px-4 py-3 text-sm text-red-200">
-                    {inviteError}
-                  </p>
-                )}
-                <button
-                  type="button"
-                  disabled={isCreatingLink}
-                  onClick={() => void generateInviteLink()}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 text-sm font-extrabold text-white transition hover:bg-brand-700 disabled:cursor-wait disabled:opacity-70"
-                >
-                  {copied ? <Check size={18} /> : <Link2 size={18} />}
-                  {isCreatingLink
-                    ? "Gerando link..."
-                    : copied
-                      ? "Link copiado"
-                      : inviteLink
-                        ? "Copiar link novamente"
-                        : "Gerar link de convite"}
-                </button>
-              </div>
+              )}
             </div>
           </div>
-        )}
+        </div>
+
+        <div className="p-7 sm:p-10">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-600">
+                Atividade do grupo
+              </p>
+              <h2 className="mt-2 text-2xl font-black tracking-[-0.03em] text-ink-950">
+                Check-ins dos membros
+              </h2>
+            </div>
+          </div>
+
+          <div className="mt-6 grid min-h-56 place-items-center rounded-3xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
+            <div className="max-w-sm">
+              <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+                <Dumbbell size={22} />
+              </span>
+              <h3 className="mt-4 font-extrabold text-ink-950">
+                Nenhum check-in por enquanto
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-zinc-500">
+                As fotos e os exercícios publicados pelos membros aparecerão
+                aqui.
+              </p>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
   );
@@ -551,24 +590,6 @@ function InfoCard({
         <h2 className="text-sm font-extrabold text-ink-950">{title}</h2>
         <p className="mt-1 text-xs leading-5 text-zinc-500">{description}</p>
       </div>
-    </div>
-  );
-}
-
-function GroupAction({
-  icon: Icon,
-  title,
-  description,
-}: {
-  icon: IconComponent;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-2xl bg-zinc-50 p-5">
-      <Icon className="text-brand-600" size={22} />
-      <h2 className="mt-4 font-extrabold text-ink-950">{title}</h2>
-      <p className="mt-1 text-sm leading-6 text-zinc-500">{description}</p>
     </div>
   );
 }
