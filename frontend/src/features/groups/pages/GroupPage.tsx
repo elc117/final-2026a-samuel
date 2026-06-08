@@ -14,7 +14,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
@@ -124,7 +124,8 @@ export function GroupPage() {
         image: groupImage,
       });
       setGroup(createdGroup);
-    } catch (error) {
+    }
+    catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         navigate("/login", { replace: true });
         return;
@@ -214,7 +215,7 @@ type CreateGroupProps = {
   isSubmitting: boolean;
   submitError: string;
   onImageSelected: (file?: File) => Promise<void>;
-  onSubmit: React.FormEventHandler<HTMLFormElement>;
+  onSubmit: React.SubmitEventHandler<HTMLFormElement>;
 };
 
 function CreateGroup({

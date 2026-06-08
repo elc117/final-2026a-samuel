@@ -1,10 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { LoginPage } from "./features/auth/pages/LoginPage";
 import { RegisterPage } from "./features/auth/pages/RegisterPage";
-import {
-  GuestOnly,
-  RequireAuth,
-} from "./features/auth/components/AuthGuard";
+import { GuestOnly, RequireAuth } from "./features/auth/components/AuthGuard";
 import { GroupPage } from "./features/groups/pages/GroupPage";
 import { GroupInvitationPage } from "./features/groups/pages/GroupInvitationPage";
 import { GroupSectionPage } from "./features/groups/pages/GroupSectionPage";
