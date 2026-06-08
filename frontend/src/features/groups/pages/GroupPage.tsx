@@ -19,6 +19,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
 import { getCurrentUser } from "../../auth/services/authService";
+import { GroupNavigation } from "../components/GroupNavigation";
 import {
   createGroupSchema,
   type CreateGroupFormData,
@@ -149,7 +150,8 @@ export function GroupPage() {
       );
       setGroupImage(compressedImage);
       setImagePreviewUrl(URL.createObjectURL(compressedImage));
-    } catch (error) {
+    }
+    catch (error) {
       setGroupImage(undefined);
       setImagePreviewUrl("");
       setImageError(
@@ -157,7 +159,8 @@ export function GroupPage() {
           ? error.message
           : "Não foi possível processar a imagem.",
       );
-    } finally {
+    }
+    finally {
       setIsCompressing(false);
     }
   }
@@ -415,9 +418,10 @@ function CurrentGroup({
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-16">
-      <div className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-xl shadow-zinc-200/60">
-        <div className="relative min-h-80 bg-brand-600">
+    <>
+      <section className="mx-auto max-w-7xl px-5 pb-32 pt-10 sm:px-8 sm:pb-36 sm:pt-16">
+        <div className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-xl shadow-zinc-200/60">
+          <div className="relative min-h-80 bg-brand-600">
           {group.imageUrl ? (
             <img
               src={group.imageUrl}
@@ -535,38 +539,39 @@ function CurrentGroup({
               )}
             </div>
           </div>
-        </div>
-
-        <div className="p-7 sm:p-10">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-600">
-                Atividade do grupo
-              </p>
-              <h2 className="mt-2 text-2xl font-black tracking-[-0.03em] text-ink-950">
-                Check-ins dos membros
-              </h2>
-            </div>
           </div>
 
-          <div className="mt-6 grid min-h-56 place-items-center rounded-3xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
-            <div className="max-w-sm">
-              <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
-                <Dumbbell size={22} />
-              </span>
-              <h3 className="mt-4 font-extrabold text-ink-950">
-                Nenhum check-in por enquanto
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-zinc-500">
-                As fotos e os exercícios publicados pelos membros aparecerão
-                aqui.
-              </p>
+          <div className="p-7 sm:p-10">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.16em] text-brand-600">
+                  Atividade do grupo
+                </p>
+                <h2 className="mt-2 text-2xl font-black tracking-[-0.03em] text-ink-950">
+                  Check-ins dos membros
+                </h2>
+              </div>
+            </div>
+
+            <div className="mt-6 grid min-h-56 place-items-center rounded-3xl border border-dashed border-zinc-300 bg-zinc-50 px-6 py-12 text-center">
+              <div className="max-w-sm">
+                <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-brand-50 text-brand-600">
+                  <Dumbbell size={22} />
+                </span>
+                <h3 className="mt-4 font-extrabold text-ink-950">
+                  Nenhum check-in por enquanto
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-zinc-500">
+                  As fotos e os exercícios publicados pelos membros aparecerão
+                  aqui.
+                </p>
+              </div>
             </div>
           </div>
         </div>
-
-      </div>
-    </section>
+      </section>
+      <GroupNavigation />
+    </>
   );
 }
 
