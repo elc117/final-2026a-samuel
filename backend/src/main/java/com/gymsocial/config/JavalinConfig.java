@@ -1,6 +1,7 @@
 package com.gymsocial.config;
 
 import com.gymsocial.group.GroupController;
+import com.gymsocial.group.invitation.GroupInvitationController;
 import com.gymsocial.user.UserProfileController;
 import com.zaxxer.hikari.HikariDataSource;
 import io.javalin.Javalin;
@@ -16,6 +17,7 @@ public final class JavalinConfig {
         HikariDataSource dataSource,
         AuthModule.Components auth,
         GroupController groupController,
+        GroupInvitationController groupInvitationController,
         UserProfileController userProfileController
     ) {
         return Javalin.create(config -> {
@@ -39,6 +41,7 @@ public final class JavalinConfig {
                 config,
                 auth,
                 groupController,
+                groupInvitationController,
                 userProfileController
             );
             ExceptionConfig.register(config);

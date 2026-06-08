@@ -13,6 +13,10 @@ public final class ApplicationModule {
         var imageStorage = new MinioImageStorage(appConfig);
         var auth = AuthModule.create(dataSource, appConfig, imageStorage);
         var groupController = GroupModule.create(dataSource, imageStorage);
+        var groupInvitationController = GroupInvitationModule.create(
+            dataSource,
+            imageStorage
+        );
         var userProfileController = UserProfileModule.create(
             dataSource,
             imageStorage
@@ -23,6 +27,7 @@ public final class ApplicationModule {
             dataSource,
             auth,
             groupController,
+            groupInvitationController,
             userProfileController
         );
     }

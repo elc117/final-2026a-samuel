@@ -1,6 +1,7 @@
 package com.gymsocial.config;
 
 import com.gymsocial.group.GroupController;
+import com.gymsocial.group.invitation.GroupInvitationController;
 import com.gymsocial.user.UserProfileController;
 import io.javalin.config.JavalinConfig;
 
@@ -13,6 +14,7 @@ public final class RouteConfig {
         JavalinConfig config,
         AuthModule.Components auth,
         GroupController groupController,
+        GroupInvitationController groupInvitationController,
         UserProfileController userProfileController
     ) {
         config.routes.get("/health", context ->
@@ -32,6 +34,23 @@ public final class RouteConfig {
         config.routes.before("/groups/*", auth.middleware()::authenticate);
         config.routes.get("/groups/me", groupController::current);
         config.routes.post("/groups", groupController::create);
+        config.routes.post(
+            "/groups/{groupId}/invite-link",
+            groupInvitationController::createOrFindLink
+        );
+
+        config.routes.before(
+            "/group-invitations/*",
+            auth.middleware()::authenticate
+        );
+        config.routes.get(
+            "/group-invitations/{token}",
+            groupInvitationController::findByToken
+        );
+        config.routes.post(
+            "/group-invitations/{token}/accept",
+            groupInvitationController::accept
+        );
 
         config.routes.before("/users/me", auth.middleware()::authenticate);
         config.routes.get("/users/me", userProfileController::current);

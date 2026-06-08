@@ -6,6 +6,7 @@ import {
   RequireAuth,
 } from "./features/auth/components/AuthGuard";
 import { GroupPage } from "./features/groups/pages/GroupPage";
+import { GroupInvitationPage } from "./features/groups/pages/GroupInvitationPage";
 import { ProfilePage } from "./features/profile/pages/ProfilePage";
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
       </Route>
       <Route element={<RequireAuth />}>
         <Route path="/grupo" element={<GroupPage />} />
+        <Route path="/convite/:token" element={<GroupInvitationPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

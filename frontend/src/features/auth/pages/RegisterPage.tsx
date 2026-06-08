@@ -2,7 +2,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AtSign, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { AuthLayout } from "../../../layouts/AuthLayout";
 import { getApiErrorMessage } from "../../../services/apiClient";
 import { AuthField } from "../components/AuthField";
@@ -11,9 +15,15 @@ import {
   type RegisterFormData,
 } from "../schemas/authSchemas";
 import { register as registerUser } from "../services/authService";
+import {
+  buildAuthPath,
+  getAuthRedirect,
+} from "../services/authRedirect";
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = getAuthRedirect(location.search);
   const [message, setMessage] = useState("");
   const [submitError, setSubmitError] = useState("");
   const {
@@ -45,7 +55,7 @@ export function RegisterPage() {
         password: data.password,
       });
 
-      navigate("/grupo", { replace: true });
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       setSubmitError(getApiErrorMessage(error));
     }
@@ -167,7 +177,10 @@ export function RegisterPage() {
 
       <p className="mt-7 text-center text-sm text-zinc-500">
         Já possui uma conta?{" "}
-        <Link to="/login" className="font-extrabold text-brand-600 hover:text-brand-700">
+        <Link
+          to={buildAuthPath("/login", redirectTo)}
+          className="font-extrabold text-brand-600 hover:text-brand-700"
+        >
           Entrar
         </Link>
       </p>

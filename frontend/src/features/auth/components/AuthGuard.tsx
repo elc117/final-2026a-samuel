@@ -1,7 +1,15 @@
 import { Dumbbell } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import {
+  Navigate,
+  Outlet,
+  useLocation,
+} from "react-router-dom";
 import { restoreSession } from "../../../services/apiClient";
+import {
+  buildAuthPath,
+  getAuthRedirect,
+} from "../services/authRedirect";
 
 type AuthGuardProps = {
   mode: "require" | "guest";
@@ -10,6 +18,7 @@ type AuthGuardProps = {
 type AuthStatus = "checking" | "authenticated" | "guest";
 
 function AuthGuard({ mode }: AuthGuardProps) {
+  const location = useLocation();
   const [status, setStatus] = useState<AuthStatus>("checking");
 
   useEffect(() => {
@@ -37,11 +46,22 @@ function AuthGuard({ mode }: AuthGuardProps) {
   }
 
   if (mode === "require" && status === "guest") {
-    return <Navigate to="/login" replace />;
+    const currentPath = `${location.pathname}${location.search}`;
+    return (
+      <Navigate
+        to={buildAuthPath("/login", currentPath)}
+        replace
+      />
+    );
   }
 
   if (mode === "guest" && status === "authenticated") {
-    return <Navigate to="/grupo" replace />;
+    return (
+      <Navigate
+        to={getAuthRedirect(location.search)}
+        replace
+      />
+    );
   }
 
   return <Outlet />;

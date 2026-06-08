@@ -2,7 +2,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { AuthLayout } from "../../../layouts/AuthLayout";
 import { getApiErrorMessage } from "../../../services/apiClient";
 import { AuthField } from "../components/AuthField";
@@ -11,9 +15,15 @@ import {
   type LoginFormData,
 } from "../schemas/authSchemas";
 import { login } from "../services/authService";
+import {
+  buildAuthPath,
+  getAuthRedirect,
+} from "../services/authRedirect";
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = getAuthRedirect(location.search);
   const [message, setMessage] = useState("");
   const [submitError, setSubmitError] = useState("");
   const {
@@ -35,7 +45,7 @@ export function LoginPage() {
 
     try {
       await login(data);
-      navigate("/grupo", { replace: true });
+      navigate(redirectTo, { replace: true });
     } catch (error) {
       setSubmitError(getApiErrorMessage(error));
     }
@@ -106,7 +116,10 @@ export function LoginPage() {
 
       <p className="mt-8 text-center text-sm text-zinc-500">
         Ainda não tem uma conta?{" "}
-        <Link to="/cadastro" className="font-extrabold text-brand-600 hover:text-brand-700">
+        <Link
+          to={buildAuthPath("/cadastro", redirectTo)}
+          className="font-extrabold text-brand-600 hover:text-brand-700"
+        >
           Criar conta
         </Link>
       </p>

@@ -2,8 +2,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowRight,
   Camera,
+  Check,
+  Copy,
   Dumbbell,
   Image,
+  Link2,
   ShieldCheck,
   Sparkles,
   Upload,
@@ -14,6 +17,7 @@ import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { BrandMark } from "../../auth/components/BrandMark";
+import { getCurrentUser } from "../../auth/services/authService";
 import {
   createGroupSchema,
   type CreateGroupFormData,
@@ -31,6 +35,7 @@ import {
   ImageCompressionError,
   ImageCompressor,
 } from "../../../shared/images/ImageCompressor";
+import { createGroupInviteLink } from "../services/groupInvitationService";
 
 const GROUP_IMAGE_OPTIONS = {
   maxWidth: 1200,
@@ -43,6 +48,7 @@ const GROUP_IMAGE_OPTIONS = {
 export function GroupPage() {
   const navigate = useNavigate();
   const [group, setGroup] = useState<Group | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<number>();
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -76,10 +82,11 @@ export function GroupPage() {
   useEffect(() => {
     let active = true;
 
-    getCurrentGroup()
-      .then((currentGroup) => {
+    Promise.all([getCurrentGroup(), getCurrentUser()])
+      .then(([currentGroup, currentUser]) => {
         if (active) {
           setGroup(currentGroup);
+          setCurrentUserId(currentUser.id);
         }
       })
       .catch((error: unknown) => {
@@ -179,7 +186,10 @@ export function GroupPage() {
           </p>
         </section>
       ) : group ? (
-        <CurrentGroup group={group} />
+        <CurrentGroup
+          group={group}
+          isAdministrator={group.adminUserId === currentUserId}
+        />
       ) : (
         <CreateGroup
           groupName={groupName}
@@ -370,7 +380,44 @@ function CreateGroup({
   );
 }
 
-function CurrentGroup({ group }: { group: Group }) {
+function CurrentGroup({
+  group,
+  isAdministrator,
+}: {
+  group: Group;
+  isAdministrator: boolean;
+}) {
+  const [inviteLink, setInviteLink] = useState("");
+  const [inviteError, setInviteError] = useState("");
+  const [isCreatingLink, setIsCreatingLink] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function generateInviteLink() {
+    setInviteError("");
+    setCopied(false);
+    setIsCreatingLink(true);
+
+    try {
+      const link = await createGroupInviteLink(group.id);
+      setInviteLink(link);
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+    } catch (error) {
+      setInviteError(getApiErrorMessage(error));
+    } finally {
+      setIsCreatingLink(false);
+    }
+  }
+
+  async function copyInviteLink() {
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      setCopied(true);
+    } catch {
+      setInviteError("Não foi possível copiar o link automaticamente.");
+    }
+  }
+
   return (
     <section className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-16">
       <div className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-xl shadow-zinc-200/60">
@@ -422,6 +469,63 @@ function CurrentGroup({ group }: { group: Group }) {
             description="Crie a primeira meta coletiva do grupo."
           />
         </div>
+
+        {isAdministrator && (
+          <div className="border-t border-zinc-200 p-7 sm:p-10">
+            <div className="rounded-3xl bg-zinc-950 p-6 text-white sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-8">
+              <div className="max-w-xl">
+                <span className="grid size-11 place-items-center rounded-2xl bg-white/10">
+                  <Link2 size={21} />
+                </span>
+                <h2 className="mt-5 text-xl font-black">
+                  Convide pessoas para o grupo
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-zinc-400">
+                  O link é permanente e continuará válido enquanto este grupo
+                  existir.
+                </p>
+              </div>
+
+              <div className="mt-6 min-w-0 sm:mt-0 sm:w-full sm:max-w-md">
+                {inviteLink && (
+                  <div className="mb-3 flex items-center gap-2 rounded-xl bg-white/10 p-2 pl-4">
+                    <span className="min-w-0 flex-1 truncate text-xs text-zinc-300">
+                      {inviteLink}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void copyInviteLink()}
+                      className="grid size-9 shrink-0 place-items-center rounded-lg bg-white text-zinc-950 transition hover:bg-zinc-200"
+                      aria-label="Copiar link"
+                    >
+                      {copied ? <Check size={17} /> : <Copy size={17} />}
+                    </button>
+                  </div>
+                )}
+                {inviteError && (
+                  <p className="mb-3 rounded-xl bg-red-500/15 px-4 py-3 text-sm text-red-200">
+                    {inviteError}
+                  </p>
+                )}
+                <button
+                  type="button"
+                  disabled={isCreatingLink}
+                  onClick={() => void generateInviteLink()}
+                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 text-sm font-extrabold text-white transition hover:bg-brand-700 disabled:cursor-wait disabled:opacity-70"
+                >
+                  {copied ? <Check size={18} /> : <Link2 size={18} />}
+                  {isCreatingLink
+                    ? "Gerando link..."
+                    : copied
+                      ? "Link copiado"
+                      : inviteLink
+                        ? "Copiar link novamente"
+                        : "Gerar link de convite"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
