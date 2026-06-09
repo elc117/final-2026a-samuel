@@ -195,6 +195,8 @@ function ActiveChallenge({
   error: string;
   onEnd: () => void;
 }) {
+  const timeline = getChallengeTimeline(challenge.startsAt, challenge.endsAt);
+
   return (
     <div className="mt-6 overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-xl shadow-zinc-200/60">
       <div className="bg-zinc-950 p-7 text-white sm:p-9">
@@ -233,6 +235,30 @@ function ActiveChallenge({
               ? "Todos os check-ins contam"
               : "1 check-in por dia"}
           </InfoPill>
+        </div>
+
+        <div className="mt-7">
+          <div className="mb-2 flex items-center justify-between gap-4 text-xs font-bold text-zinc-400">
+            <span>{formatShortDate(challenge.startsAt)}</span>
+            <span>{formatShortDate(challenge.endsAt)}</span>
+          </div>
+          <div
+            className="h-2 overflow-hidden rounded-full bg-white/10"
+            role="progressbar"
+            aria-label={`${timeline.elapsedDays} dias passados no desafio`}
+            aria-valuemin={0}
+            aria-valuemax={timeline.totalDays}
+            aria-valuenow={timeline.elapsedDays}
+          >
+            <div
+              className="h-full rounded-full bg-brand-500 transition-[width] duration-500"
+              style={{ width: `${timeline.progress}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs font-bold text-zinc-400">
+            {timeline.elapsedDays}{" "}
+            {timeline.elapsedDays === 1 ? "dia passado" : "dias passados"}
+          </p>
         </div>
       </div>
 
@@ -473,4 +499,36 @@ function formatDate(value: string) {
     dateStyle: "long",
     timeZone: "UTC",
   }).format(new Date(`${value}T00:00:00Z`));
+}
+
+function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`));
+}
+
+function getChallengeTimeline(startsAt: string, endsAt: string) {
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  const start = new Date(`${startsAt}T00:00:00Z`).getTime();
+  const end = new Date(`${endsAt}T00:00:00Z`).getTime();
+  const today = new Date();
+  const currentDay = Date.UTC(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+  const totalDays = Math.max(1, Math.round((end - start) / millisecondsPerDay));
+  const elapsedDays = Math.min(
+    totalDays,
+    Math.max(0, Math.floor((currentDay - start) / millisecondsPerDay)),
+  );
+
+  return {
+    totalDays,
+    elapsedDays,
+    progress: (elapsedDays / totalDays) * 100,
+  };
 }
