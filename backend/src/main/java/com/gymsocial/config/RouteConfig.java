@@ -75,6 +75,10 @@ public final class RouteConfig {
             "/friendships/requests",
             friendshipController::incoming
         );
+        config.routes.get(
+            "/friendships/requests/count",
+            friendshipController::incomingCount
+        );
         config.routes.post(
             "/friendships/users/{userCode}",
             friendshipController::request

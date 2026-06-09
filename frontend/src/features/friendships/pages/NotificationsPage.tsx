@@ -10,6 +10,7 @@ import {
 import {
   acceptFriendshipRequest,
   getFriendshipRequests,
+  notifyFriendshipRequestsChanged,
   rejectFriendshipRequest,
   type FriendshipRequest,
 } from "../services/friendshipService";
@@ -56,6 +57,7 @@ export function NotificationsPage() {
       setRequests((current) =>
         current.filter((request) => request.id !== requestId),
       );
+      notifyFriendshipRequestsChanged();
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
     } finally {

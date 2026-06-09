@@ -29,6 +29,14 @@ public final class FriendshipController {
         ));
     }
 
+    public void incomingCount(Context context) {
+        context.json(new FriendshipRequestCountResponse(
+            service.countIncoming(
+                AuthenticatedUserContext.getUserId(context)
+            )
+        ));
+    }
+
     public void accept(Context context) {
         service.accept(
             AuthenticatedUserContext.getUserId(context),
@@ -53,5 +61,8 @@ public final class FriendshipController {
                 "Solicitação de conexão não encontrada."
             );
         }
+    }
+
+    private record FriendshipRequestCountResponse(int count) {
     }
 }

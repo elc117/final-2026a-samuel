@@ -81,6 +81,10 @@ public final class FriendshipService {
             .toList();
     }
 
+    public int countIncoming(long userId) {
+        return repository.countIncomingRequests(userId);
+    }
+
     public void accept(long receiverUserId, UUID friendshipId) {
         switch (repository.accept(
             friendshipId,

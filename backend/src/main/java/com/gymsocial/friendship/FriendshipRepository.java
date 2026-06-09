@@ -104,6 +104,13 @@ public final class FriendshipRepository {
         ORDER BY friendship.created_at DESC
         """;
 
+    private static final String COUNT_INCOMING_REQUESTS = """
+        SELECT COUNT(*)
+        FROM friendships
+        WHERE receiver_user_id = ?
+          AND status = 'PENDING'
+        """;
+
     private final DataSource dataSource;
 
     public FriendshipRepository(DataSource dataSource) {
@@ -291,6 +298,26 @@ public final class FriendshipRepository {
         } catch (SQLException exception) {
             throw new IllegalStateException(
                 "Could not list friendship requests",
+                exception
+            );
+        }
+    }
+
+    public int countIncomingRequests(long receiverUserId) {
+        try (
+            var connection = dataSource.getConnection();
+            var statement = connection.prepareStatement(
+                COUNT_INCOMING_REQUESTS
+            )
+        ) {
+            statement.setLong(1, receiverUserId);
+            try (var resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1);
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException(
+                "Could not count friendship requests",
                 exception
             );
         }

@@ -9,6 +9,15 @@ export type FriendshipRequest = {
   createdAt: string;
 };
 
+type FriendshipRequestCountResponse = {
+  count: number;
+};
+
+export const FRIENDSHIP_REQUESTS_CHANGED_EVENT =
+  "friendship-requests-changed";
+
+let countRequest: Promise<number> | null = null;
+
 export function sendFriendshipRequest(userCode: string): Promise<void> {
   return apiRequest<void>(`/friendships/users/${userCode}`, {
     method: "POST",
@@ -17,6 +26,28 @@ export function sendFriendshipRequest(userCode: string): Promise<void> {
 
 export function getFriendshipRequests(): Promise<FriendshipRequest[]> {
   return apiRequest<FriendshipRequest[]>("/friendships/requests");
+}
+
+export function getFriendshipRequestCount(force = false): Promise<number> {
+  if (force) {
+    countRequest = null;
+  }
+
+  if (!countRequest) {
+    countRequest = apiRequest<FriendshipRequestCountResponse>(
+      "/friendships/requests/count",
+    )
+      .then((response) => response.count)
+      .finally(() => {
+        countRequest = null;
+      });
+  }
+
+  return countRequest;
+}
+
+export function notifyFriendshipRequestsChanged() {
+  window.dispatchEvent(new Event(FRIENDSHIP_REQUESTS_CHANGED_EVENT));
 }
 
 export function acceptFriendshipRequest(requestId: string): Promise<void> {
