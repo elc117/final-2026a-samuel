@@ -508,12 +508,10 @@ function CurrentGroup({
               {isAdministrator && (
                 <>
                   <div className="my-2 border-t border-zinc-100" />
-                  <button
-                    type="button"
+                  <Link
+                    to="/grupo/ranking"
                     role="menuitem"
-                    disabled
-                    className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl px-3 py-3 text-left opacity-55"
-                    title="A criação de desafios será implementada em breve."
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-zinc-50"
                   >
                     <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-600">
                       <Trophy size={18} />
@@ -521,10 +519,10 @@ function CurrentGroup({
                     <span>
                       <strong className="block text-sm">Criar desafio</strong>
                       <span className="mt-0.5 block text-xs text-zinc-500">
-                        Disponível em breve
+                        Definir novo desafio
                       </span>
                     </span>
-                  </button>
+                  </Link>
                 </>
               )}
               </div>

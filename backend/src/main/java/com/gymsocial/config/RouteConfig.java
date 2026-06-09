@@ -1,5 +1,6 @@
 package com.gymsocial.config;
 
+import com.gymsocial.challenge.ChallengeController;
 import com.gymsocial.group.GroupController;
 import com.gymsocial.group.invitation.GroupInvitationController;
 import com.gymsocial.user.UserProfileController;
@@ -16,7 +17,8 @@ public final class RouteConfig {
         GroupController groupController,
         GroupInvitationController groupInvitationController,
         UserProfileController userProfileController,
-        CheckInModule.Components checkIn
+        CheckInModule.Components checkIn,
+        ChallengeController challengeController
     ) {
         config.routes.get("/health", context ->
             context
@@ -68,6 +70,15 @@ public final class RouteConfig {
         config.routes.post(
             "/check-ins/{checkInId}/comments",
             checkIn.commentController()::create
+        );
+
+        config.routes.before("/challenges", auth.middleware()::authenticate);
+        config.routes.before("/challenges/*", auth.middleware()::authenticate);
+        config.routes.get("/challenges/current", challengeController::current);
+        config.routes.post("/challenges", challengeController::create);
+        config.routes.delete(
+            "/challenges/current",
+            challengeController::endCurrent
         );
     }
 }

@@ -8,6 +8,7 @@ import { GroupSectionPage } from "./features/groups/pages/GroupSectionPage";
 import { CreateCheckInPage } from "./features/checkins/pages/CreateCheckInPage";
 import { CheckInDetailsPage } from "./features/checkins/pages/CheckInDetailsPage";
 import { ProfilePage } from "./features/profile/pages/ProfilePage";
+import { ChallengePage } from "./features/challenges/pages/ChallengePage";
 
 export default function App() {
   return (
@@ -20,7 +21,7 @@ export default function App() {
         <Route path="/grupo" element={<GroupPage />} />
         <Route
           path="/grupo/ranking"
-          element={<GroupSectionPage section="ranking" />}
+          element={<ChallengePage />}
         />
         <Route
           path="/grupo/check-in"

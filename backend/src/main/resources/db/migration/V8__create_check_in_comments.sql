@@ -13,3 +13,6 @@ CREATE TABLE check_in_comments (
 
 CREATE INDEX check_in_comments_check_in_created_idx
     ON check_in_comments (check_in_id, created_at);
+
+CREATE INDEX check_in_comments_author_idx
+    ON check_in_comments (author_user_id);
