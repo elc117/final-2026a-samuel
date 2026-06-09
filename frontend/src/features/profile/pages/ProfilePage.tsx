@@ -12,10 +12,6 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
 import {
-  ImageCompressionError,
-  ImageCompressor,
-} from "../../../shared/images/ImageCompressor";
-import {
   ApiError,
   getApiErrorMessage,
 } from "../../../services/apiClient";
@@ -103,6 +99,9 @@ export function ProfilePage() {
     setIsCompressing(true);
 
     try {
+      const { ImageCompressor } = await import(
+        "../../../shared/images/ImageCompressor"
+      );
       const compressed = await ImageCompressor.compress(
         file,
         PROFILE_IMAGE_OPTIONS,
@@ -113,7 +112,7 @@ export function ProfilePage() {
       setProfileImage(undefined);
       setPreviewUrl("");
       setImageError(
-        error instanceof ImageCompressionError
+        error instanceof Error
           ? error.message
           : "Não foi possível processar a imagem.",
       );

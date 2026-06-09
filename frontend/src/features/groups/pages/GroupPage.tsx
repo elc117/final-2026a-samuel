@@ -34,10 +34,6 @@ import {
   ApiError,
   getApiErrorMessage,
 } from "../../../services/apiClient";
-import {
-  ImageCompressionError,
-  ImageCompressor,
-} from "../../../shared/images/ImageCompressor";
 import { Dropdown } from "../../../shared/components/Dropdown";
 import { getGroupInviteLink } from "../services/groupInvitationService";
 import {
@@ -152,6 +148,9 @@ export function GroupPage() {
     setIsCompressing(true);
 
     try {
+      const { ImageCompressor } = await import(
+        "../../../shared/images/ImageCompressor"
+      );
       const compressedImage = await ImageCompressor.compress(
         file,
         GROUP_IMAGE_OPTIONS,
@@ -163,7 +162,7 @@ export function GroupPage() {
       setGroupImage(undefined);
       setImagePreviewUrl("");
       setImageError(
-        error instanceof ImageCompressionError
+        error instanceof Error
           ? error.message
           : "Não foi possível processar a imagem.",
       );

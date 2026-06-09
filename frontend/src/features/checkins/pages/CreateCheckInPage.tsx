@@ -5,10 +5,6 @@ import { useForm, useWatch } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
 import { GroupNavigation } from "../../groups/components/GroupNavigation";
-import {
-  ImageCompressionError,
-  ImageCompressor,
-} from "../../../shared/images/ImageCompressor";
 import { getApiErrorMessage } from "../../../services/apiClient";
 import {
   createCheckInSchema,
@@ -65,6 +61,9 @@ export function CreateCheckInPage() {
     setIsCompressing(true);
 
     try {
+      const { ImageCompressor } = await import(
+        "../../../shared/images/ImageCompressor"
+      );
       const compressed = await ImageCompressor.compress(
         file,
         CHECK_IN_IMAGE_OPTIONS,
@@ -75,7 +74,7 @@ export function CreateCheckInPage() {
       setImage(undefined);
       setPreviewUrl("");
       setImageError(
-        error instanceof ImageCompressionError
+        error instanceof Error
           ? error.message
           : "Não foi possível processar a imagem.",
       );
