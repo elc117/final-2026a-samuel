@@ -6,6 +6,12 @@ export type UserProfile = {
   username: string;
   profileImageUrl: string | null;
   friendCount: number;
+  relationship:
+    | "SELF"
+    | "NONE"
+    | "PENDING_SENT"
+    | "PENDING_RECEIVED"
+    | "CONNECTED";
 };
 
 export type UpdateProfileRequest = {

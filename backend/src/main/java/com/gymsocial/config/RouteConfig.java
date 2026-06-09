@@ -4,6 +4,7 @@ import com.gymsocial.challenge.ChallengeController;
 import com.gymsocial.group.GroupController;
 import com.gymsocial.group.invitation.GroupInvitationController;
 import com.gymsocial.user.UserProfileController;
+import com.gymsocial.friendship.FriendshipController;
 import io.javalin.config.JavalinConfig;
 
 public final class RouteConfig {
@@ -17,6 +18,7 @@ public final class RouteConfig {
         GroupController groupController,
         GroupInvitationController groupInvitationController,
         UserProfileController userProfileController,
+        FriendshipController friendshipController,
         CheckInModule.Components checkIn,
         ChallengeController challengeController
     ) {
@@ -60,6 +62,31 @@ public final class RouteConfig {
         config.routes.get("/users/me", userProfileController::current);
         config.routes.put("/users/me", userProfileController::update);
         config.routes.get("/users/{userCode}", userProfileController::find);
+
+        config.routes.before(
+            "/friendships",
+            auth.middleware()::authenticate
+        );
+        config.routes.before(
+            "/friendships/*",
+            auth.middleware()::authenticate
+        );
+        config.routes.get(
+            "/friendships/requests",
+            friendshipController::incoming
+        );
+        config.routes.post(
+            "/friendships/users/{userCode}",
+            friendshipController::request
+        );
+        config.routes.post(
+            "/friendships/{friendshipId}/accept",
+            friendshipController::accept
+        );
+        config.routes.post(
+            "/friendships/{friendshipId}/reject",
+            friendshipController::reject
+        );
 
         config.routes.before("/check-ins", auth.middleware()::authenticate);
         config.routes.before("/check-ins/*", auth.middleware()::authenticate);

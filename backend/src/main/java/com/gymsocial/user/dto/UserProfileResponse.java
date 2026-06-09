@@ -7,21 +7,24 @@ public record UserProfileResponse(
     String name,
     String username,
     String profileImageUrl,
-    int friendCount
+    int friendCount,
+    String relationship
 ) {
 
     public static UserProfileResponse from(
         User user,
         String code,
         String profileImageUrl,
-        int friendCount
+        int friendCount,
+        String relationship
     ) {
         return new UserProfileResponse(
             code,
             user.name(),
             user.username(),
             profileImageUrl,
-            friendCount
+            friendCount,
+            relationship
         );
     }
 }

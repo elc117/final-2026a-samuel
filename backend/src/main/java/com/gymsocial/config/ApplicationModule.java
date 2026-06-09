@@ -28,10 +28,16 @@ public final class ApplicationModule {
             dataSource,
             imageStorage
         );
-        var userProfileController = UserProfileModule.create(
+        var friendship = FriendshipModule.create(
             dataSource,
             imageStorage,
             publicIdCodec
+        );
+        var userProfileController = UserProfileModule.create(
+            dataSource,
+            imageStorage,
+            publicIdCodec,
+            friendship.repository()
         );
         var checkIn = CheckInModule.create(
             dataSource,
@@ -51,6 +57,7 @@ public final class ApplicationModule {
             groupController,
             groupInvitationController,
             userProfileController,
+            friendship.controller(),
             checkIn,
             challengeController
         );

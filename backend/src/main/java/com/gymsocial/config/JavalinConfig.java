@@ -4,6 +4,7 @@ import com.gymsocial.challenge.ChallengeController;
 import com.gymsocial.group.GroupController;
 import com.gymsocial.group.invitation.GroupInvitationController;
 import com.gymsocial.user.UserProfileController;
+import com.gymsocial.friendship.FriendshipController;
 import com.zaxxer.hikari.HikariDataSource;
 import io.javalin.Javalin;
 import io.javalin.config.SizeUnit;
@@ -20,6 +21,7 @@ public final class JavalinConfig {
         GroupController groupController,
         GroupInvitationController groupInvitationController,
         UserProfileController userProfileController,
+        FriendshipController friendshipController,
         CheckInModule.Components checkIn,
         ChallengeController challengeController
     ) {
@@ -46,6 +48,7 @@ public final class JavalinConfig {
                 groupController,
                 groupInvitationController,
                 userProfileController,
+                friendshipController,
                 checkIn,
                 challengeController
             );

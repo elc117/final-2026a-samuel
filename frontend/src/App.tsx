@@ -22,11 +22,6 @@ const GroupInvitationPage = lazy(() =>
     default: module.GroupInvitationPage,
   })),
 );
-const GroupSectionPage = lazy(() =>
-  import("./features/groups/pages/GroupSectionPage").then((module) => ({
-    default: module.GroupSectionPage,
-  })),
-);
 const CreateCheckInPage = lazy(() =>
   import("./features/checkins/pages/CreateCheckInPage").then((module) => ({
     default: module.CreateCheckInPage,
@@ -52,6 +47,11 @@ const ChallengePage = lazy(() =>
     default: module.ChallengePage,
   })),
 );
+const NotificationsPage = lazy(() =>
+  import("./features/friendships/pages/NotificationsPage").then((module) => ({
+    default: module.NotificationsPage,
+  })),
+);
 
 export default function App() {
   return (
@@ -70,8 +70,8 @@ export default function App() {
             element={<CheckInDetailsPage />}
           />
           <Route
-            path="/grupo/detalhes"
-            element={<GroupSectionPage section="details" />}
+            path="/grupo/notificacoes"
+            element={<NotificationsPage />}
           />
           <Route path="/convite/:token" element={<GroupInvitationPage />} />
           <Route path="/perfil" element={<ProfilePage />} />

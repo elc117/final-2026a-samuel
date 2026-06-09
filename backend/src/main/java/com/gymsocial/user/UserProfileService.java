@@ -1,5 +1,6 @@
 package com.gymsocial.user;
 
+import com.gymsocial.friendship.FriendshipRepository;
 import com.gymsocial.shared.exception.NotFoundException;
 import com.gymsocial.shared.exception.UnauthorizedException;
 import com.gymsocial.shared.storage.ImageFileValidator;
@@ -19,19 +20,22 @@ public final class UserProfileService {
     private final ImageFileValidator imageFileValidator;
     private final ImageStorage imageStorage;
     private final PublicIdCodec publicIdCodec;
+    private final FriendshipRepository friendshipRepository;
 
     public UserProfileService(
         UserRepository userRepository,
         RequestValidator requestValidator,
         ImageFileValidator imageFileValidator,
         ImageStorage imageStorage,
-        PublicIdCodec publicIdCodec
+        PublicIdCodec publicIdCodec,
+        FriendshipRepository friendshipRepository
     ) {
         this.userRepository = userRepository;
         this.requestValidator = requestValidator;
         this.imageFileValidator = imageFileValidator;
         this.imageStorage = imageStorage;
         this.publicIdCodec = publicIdCodec;
+        this.friendshipRepository = friendshipRepository;
     }
 
     public UserProfileResponse findByUserId(long userId) {
@@ -41,7 +45,7 @@ public final class UserProfileService {
                 "Usuário autenticado não encontrado."
             ));
 
-        return toResponse(profile);
+        return toResponse(profile, FriendshipRepository.Relationship.SELF);
     }
 
     public UserProfileResponse findVisibleProfile(
@@ -58,7 +62,13 @@ public final class UserProfileService {
                 "Perfil não encontrado."
             ));
 
-        return toResponse(profile);
+        return toResponse(
+            profile,
+            friendshipRepository.findRelationship(
+                viewerUserId,
+                profileUserId
+            )
+        );
     }
 
     public UserProfileResponse update(long userId, UpdateProfileRequest request, ImageUpload image) {
@@ -97,10 +107,13 @@ public final class UserProfileService {
             deleteQuietly(currentProfile.user().profileImageUrl());
         }
 
-        return toResponse(new UserRepository.UserProfile(
-            updatedUser,
-            currentProfile.friendCount()
-        ));
+        return toResponse(
+            new UserRepository.UserProfile(
+                updatedUser,
+                currentProfile.friendCount()
+            ),
+            FriendshipRepository.Relationship.SELF
+        );
     }
 
     private String uploadImage(long userId, ImageUpload image) {
@@ -122,7 +135,10 @@ public final class UserProfileService {
         return objectKey;
     }
 
-    private UserProfileResponse toResponse(UserRepository.UserProfile profile) {
+    private UserProfileResponse toResponse(
+        UserRepository.UserProfile profile,
+        FriendshipRepository.Relationship relationship
+    ) {
         String imageUrl = profile.user().profileImageUrl() == null
             ? null
             : imageStorage.createReadUrl(profile.user().profileImageUrl());
@@ -131,7 +147,8 @@ public final class UserProfileService {
             profile.user(),
             publicIdCodec.encode(profile.user().id()),
             imageUrl,
-            profile.friendCount()
+            profile.friendCount(),
+            relationship.name()
         );
     }
 

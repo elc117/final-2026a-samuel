@@ -1,22 +1,18 @@
-import { ArrowLeft, Check, UserPlus, UserRound, Users } from "lucide-react";
+import { ArrowLeft, Bell, Check, UserPlus, UserRound, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
-import {
-  ApiError,
-  getApiErrorMessage,
-} from "../../../services/apiClient";
-import {
-  getPublicProfile,
-  type UserProfile,
-} from "../services/profileService";
+import {ApiError, getApiErrorMessage } from "../../../services/apiClient";
+import { getPublicProfile, type UserProfile } from "../services/profileService";
+import { sendFriendshipRequest } from "../../friendships/services/friendshipService";
 
 export function PublicProfilePage() {
   const navigate = useNavigate();
   const { userCode = "" } = useParams();
   const [profile, setProfile] = useState<UserProfile>();
   const [error, setError] = useState("");
-  const [connectionRequested, setConnectionRequested] = useState(false);
+  const [connectionError, setConnectionError] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
   const hasInvalidUserCode = !/^[A-Za-z0-9]{10,}$/.test(userCode);
 
   useEffect(() => {
@@ -44,6 +40,28 @@ export function PublicProfilePage() {
   const visibleError = hasInvalidUserCode
     ? "Perfil não encontrado."
     : error;
+
+  async function connect() {
+    if (!profile || profile.relationship !== "NONE" || isConnecting) {
+      return;
+    }
+
+    setConnectionError("");
+    setIsConnecting(true);
+
+    try {
+      await sendFriendshipRequest(profile.code);
+      setProfile((current) =>
+        current ? { ...current, relationship: "PENDING_SENT" } : current,
+      );
+    }
+    catch (requestError) {
+      setConnectionError(getApiErrorMessage(requestError));
+    }
+    finally {
+      setIsConnecting(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-zinc-50">
@@ -107,33 +125,85 @@ export function PublicProfilePage() {
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setConnectionRequested((current) => !current)}
-                    className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border px-3.5 text-xs font-extrabold transition ${
-                      connectionRequested
-                        ? "border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100"
-                        : "border-brand-200 bg-white text-brand-700 hover:bg-brand-50"
-                    }`}
-                  >
-                    {connectionRequested ? (
-                      <>
-                        <Check size={18} />
-                        Solicitação enviada
-                      </>
-                    ) : (
-                      <>
-                        <UserPlus size={18} />
-                        Conectar
-                      </>
-                    )}
-                  </button>
+                  <ConnectionAction
+                    relationship={profile.relationship}
+                    isConnecting={isConnecting}
+                    onConnect={() => void connect()}
+                  />
                 </div>
               </div>
+              {connectionError && (
+                <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                  {connectionError}
+                </p>
+              )}
             </div>
           </article>
         )}
       </section>
     </main>
+  );
+}
+
+function ConnectionAction({
+  relationship,
+  isConnecting,
+  onConnect,
+}: {
+  relationship: UserProfile["relationship"];
+  isConnecting: boolean;
+  onConnect: () => void;
+}) {
+  const baseClass =
+    "inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border px-3.5 text-xs font-extrabold transition";
+
+  if (relationship === "SELF") {
+    return null;
+  }
+
+  if (relationship === "CONNECTED") {
+    return (
+      <span
+        className={`${baseClass} border-emerald-200 bg-emerald-50 text-emerald-700`}
+      >
+        <Check size={16} />
+        Conectado
+      </span>
+    );
+  }
+
+  if (relationship === "PENDING_SENT") {
+    return (
+      <span
+        className={`${baseClass} border-brand-200 bg-brand-50 text-brand-700`}
+      >
+        <Check size={16} />
+        Solicitação enviada
+      </span>
+    );
+  }
+
+  if (relationship === "PENDING_RECEIVED") {
+    return (
+      <Link
+        to="/grupo/notificacoes"
+        className={`${baseClass} border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100`}
+      >
+        <Bell size={16} />
+        Responder solicitação
+      </Link>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      disabled={isConnecting}
+      onClick={onConnect}
+      className={`${baseClass} border-brand-200 bg-white text-brand-700 hover:bg-brand-50 disabled:cursor-wait disabled:opacity-60`}
+    >
+      <UserPlus size={16} />
+      {isConnecting ? "Enviando..." : "Conectar"}
+    </button>
   );
 }

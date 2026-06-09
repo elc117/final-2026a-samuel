@@ -1,4 +1,4 @@
-import { CirclePlus, Info, Trophy } from "lucide-react";
+import { Bell, CirclePlus, Trophy } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const navigationItems = [
@@ -15,9 +15,9 @@ const navigationItems = [
     primary: true,
   },
   {
-    label: "Detalhes do grupo",
-    icon: Info,
-    to: "/grupo/detalhes",
+    label: "Notificações",
+    icon: Bell,
+    to: "/grupo/notificacoes",
     primary: false,
   },
 ] as const;
