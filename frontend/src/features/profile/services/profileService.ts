@@ -1,7 +1,7 @@
 import { apiRequest } from "../../../services/apiClient";
 
 export type UserProfile = {
-  id: number;
+  code: string;
   name: string;
   username: string;
   profileImageUrl: string | null;
@@ -17,8 +17,8 @@ export function getProfile(): Promise<UserProfile> {
   return apiRequest<UserProfile>("/users/me");
 }
 
-export function getPublicProfile(userId: number): Promise<UserProfile> {
-  return apiRequest<UserProfile>(`/users/${userId}`);
+export function getPublicProfile(userCode: string): Promise<UserProfile> {
+  return apiRequest<UserProfile>(`/users/${userCode}`);
 }
 
 export function updateProfile(request: UpdateProfileRequest): Promise<UserProfile> {

@@ -1,6 +1,7 @@
 package com.gymsocial.auth;
 
 import com.auth0.jwt.JWT;
+import com.gymsocial.shared.id.PublicIdCodec;
 import com.gymsocial.user.User;
 import org.junit.jupiter.api.Test;
 
@@ -11,6 +12,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JwtServiceTest {
+
+    private final PublicIdCodec publicIdCodec = new PublicIdCodec(
+        "test-public-id-salt"
+    );
 
     @Test
     void createsAccessTokenForUser() {
@@ -29,13 +34,14 @@ class JwtServiceTest {
         );
 
         JwtService jwtService = new JwtService(
-            "test-secret-with-at-least-32-characters"
+            "test-secret-with-at-least-32-characters",
+            publicIdCodec
         );
         String token = jwtService.createAccessToken(user);
         var decoded = JWT.decode(token);
 
         assertEquals("gym-social-api", decoded.getIssuer());
-        assertEquals(String.valueOf(userId), decoded.getSubject());
+        assertEquals(publicIdCodec.encode(userId), decoded.getSubject());
         assertTrue(decoded.getExpiresAtAsInstant().isAfter(Instant.now()));
         assertEquals(userId, jwtService.verifyAccessToken(token));
     }
@@ -56,10 +62,12 @@ class JwtServiceTest {
         );
 
         String token = new JwtService(
-            "first-test-secret-with-at-least-32-characters"
+            "first-test-secret-with-at-least-32-characters",
+            publicIdCodec
         ).createAccessToken(user);
         JwtService jwtService = new JwtService(
-            "second-test-secret-with-at-least-32-characters"
+            "second-test-secret-with-at-least-32-characters",
+            publicIdCodec
         );
 
         assertThrows(

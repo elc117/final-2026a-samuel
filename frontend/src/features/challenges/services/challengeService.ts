@@ -8,7 +8,7 @@ export type ChallengePeriod =
   | "CUSTOM";
 
 export type ChallengeRanking = {
-  userId: number;
+  userCode: string;
   name: string;
   profileImageUrl: string | null;
   score: number;

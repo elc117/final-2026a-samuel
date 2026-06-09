@@ -6,6 +6,7 @@ import com.gymsocial.shared.storage.ImageFileValidator;
 import com.gymsocial.shared.storage.ImageStorage;
 import com.gymsocial.shared.storage.ImageUpload;
 import com.gymsocial.shared.validation.RequestValidator;
+import com.gymsocial.shared.id.PublicIdCodec;
 import com.gymsocial.user.dto.UpdateProfileRequest;
 import com.gymsocial.user.dto.UserProfileResponse;
 
@@ -17,17 +18,20 @@ public final class UserProfileService {
     private final RequestValidator requestValidator;
     private final ImageFileValidator imageFileValidator;
     private final ImageStorage imageStorage;
+    private final PublicIdCodec publicIdCodec;
 
     public UserProfileService(
         UserRepository userRepository,
         RequestValidator requestValidator,
         ImageFileValidator imageFileValidator,
-        ImageStorage imageStorage
+        ImageStorage imageStorage,
+        PublicIdCodec publicIdCodec
     ) {
         this.userRepository = userRepository;
         this.requestValidator = requestValidator;
         this.imageFileValidator = imageFileValidator;
         this.imageStorage = imageStorage;
+        this.publicIdCodec = publicIdCodec;
     }
 
     public UserProfileResponse findByUserId(long userId) {
@@ -42,8 +46,12 @@ public final class UserProfileService {
 
     public UserProfileResponse findVisibleProfile(
         long viewerUserId,
-        long profileUserId
+        String profileCode
     ) {
+        long profileUserId = publicIdCodec.decode(profileCode)
+            .orElseThrow(() -> new NotFoundException(
+                "Perfil não encontrado."
+            ));
         UserRepository.UserProfile profile = userRepository
             .findVisibleProfileById(viewerUserId, profileUserId)
             .orElseThrow(() -> new NotFoundException(
@@ -121,6 +129,7 @@ public final class UserProfileService {
 
         return UserProfileResponse.from(
             profile.user(),
+            publicIdCodec.encode(profile.user().id()),
             imageUrl,
             profile.friendCount()
         );

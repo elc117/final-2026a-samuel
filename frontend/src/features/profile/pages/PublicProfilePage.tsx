@@ -13,21 +13,19 @@ import {
 
 export function PublicProfilePage() {
   const navigate = useNavigate();
-  const { userId = "" } = useParams();
+  const { userCode = "" } = useParams();
   const [profile, setProfile] = useState<UserProfile>();
   const [error, setError] = useState("");
-  const parsedUserId = Number(userId);
-  const hasInvalidUserId =
-    !Number.isSafeInteger(parsedUserId) || parsedUserId <= 0;
+  const hasInvalidUserCode = !/^[A-Za-z0-9]{10,}$/.test(userCode);
 
   useEffect(() => {
     let active = true;
 
-    if (hasInvalidUserId) {
+    if (hasInvalidUserCode) {
       return;
     }
 
-    getPublicProfile(parsedUserId)
+    getPublicProfile(userCode)
       .then((response) => active && setProfile(response))
       .catch((requestError: unknown) => {
         if (requestError instanceof ApiError && requestError.status === 401) {
@@ -40,9 +38,9 @@ export function PublicProfilePage() {
     return () => {
       active = false;
     };
-  }, [hasInvalidUserId, navigate, parsedUserId]);
+  }, [hasInvalidUserCode, navigate, userCode]);
 
-  const visibleError = hasInvalidUserId
+  const visibleError = hasInvalidUserCode
     ? "Perfil não encontrado."
     : error;
 

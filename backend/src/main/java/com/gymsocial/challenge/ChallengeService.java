@@ -9,6 +9,7 @@ import com.gymsocial.shared.exception.NotFoundException;
 import com.gymsocial.shared.exception.ValidationException;
 import com.gymsocial.shared.storage.ImageStorage;
 import com.gymsocial.shared.validation.RequestValidator;
+import com.gymsocial.shared.id.PublicIdCodec;
 
 import java.time.DayOfWeek;
 import java.time.Instant;
@@ -34,15 +35,18 @@ public final class ChallengeService {
     private final ChallengeRepository repository;
     private final RequestValidator requestValidator;
     private final ImageStorage imageStorage;
+    private final PublicIdCodec publicIdCodec;
 
     public ChallengeService(
         ChallengeRepository repository,
         RequestValidator requestValidator,
-        ImageStorage imageStorage
+        ImageStorage imageStorage,
+        PublicIdCodec publicIdCodec
     ) {
         this.repository = repository;
         this.requestValidator = requestValidator;
         this.imageStorage = imageStorage;
+        this.publicIdCodec = publicIdCodec;
     }
 
     public Optional<ChallengeResponse> findCurrent(long userId) {
@@ -136,7 +140,7 @@ public final class ChallengeService {
             .findRanking(challenge)
             .stream()
             .map(entry -> new ChallengeRankingResponse(
-                entry.userId(),
+                publicIdCodec.encode(entry.userId()),
                 entry.name(),
                 entry.profileImageUrl() == null
                     ? null

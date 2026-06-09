@@ -8,6 +8,7 @@ import com.gymsocial.shared.storage.ImageFileValidator;
 import com.gymsocial.shared.storage.ImageStorage;
 import com.gymsocial.shared.storage.ImageUpload;
 import com.gymsocial.shared.validation.RequestValidator;
+import com.gymsocial.shared.id.PublicIdCodec;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,17 +23,20 @@ public final class CheckInService {
     private final RequestValidator requestValidator;
     private final ImageFileValidator imageFileValidator;
     private final ImageStorage imageStorage;
+    private final PublicIdCodec publicIdCodec;
 
     public CheckInService(
         CheckInRepository repository,
         RequestValidator requestValidator,
         ImageFileValidator imageFileValidator,
-        ImageStorage imageStorage
+        ImageStorage imageStorage,
+        PublicIdCodec publicIdCodec
     ) {
         this.repository = repository;
         this.requestValidator = requestValidator;
         this.imageFileValidator = imageFileValidator;
         this.imageStorage = imageStorage;
+        this.publicIdCodec = publicIdCodec;
     }
 
     public CheckInResponse create(
@@ -130,6 +134,7 @@ public final class CheckInService {
 
         return CheckInResponse.from(
             checkIn,
+            publicIdCodec.encode(checkIn.authorUserId()),
             authorName,
             authorImageUrl,
             imageUrl

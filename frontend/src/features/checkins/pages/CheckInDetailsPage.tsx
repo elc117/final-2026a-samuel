@@ -101,7 +101,7 @@ export function CheckInDetailsPage() {
 
               <div className="flex flex-col p-6 sm:p-8">
                 <div className="flex items-center gap-3">
-                  <Link to={`/perfil/${checkIn.authorUserId}`}>
+                  <Link to={`/perfil/${checkIn.authorCode}`}>
                     <Avatar
                       name={checkIn.authorName}
                       imageUrl={checkIn.authorImageUrl}
@@ -110,7 +110,7 @@ export function CheckInDetailsPage() {
                   </Link>
                   <div>
                     <Link
-                      to={`/perfil/${checkIn.authorUserId}`}
+                      to={`/perfil/${checkIn.authorCode}`}
                       className="text-sm font-extrabold text-ink-950 transition hover:text-brand-700"
                     >
                       {checkIn.authorName ?? "Membro do grupo"}
@@ -144,7 +144,7 @@ export function CheckInDetailsPage() {
                 ) : (
                   comments.map((current) => (
                     <article key={current.id} className="flex gap-3 py-4 first:pt-0">
-                      <Link to={`/perfil/${current.authorUserId}`}>
+                      <Link to={`/perfil/${current.authorCode}`}>
                         <Avatar
                           name={current.authorName}
                           imageUrl={current.authorImageUrl}
@@ -153,7 +153,7 @@ export function CheckInDetailsPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex justify-between gap-3">
                           <Link
-                            to={`/perfil/${current.authorUserId}`}
+                            to={`/perfil/${current.authorCode}`}
                             className="text-sm font-extrabold text-ink-950 transition hover:text-brand-700"
                           >
                             {current.authorName}

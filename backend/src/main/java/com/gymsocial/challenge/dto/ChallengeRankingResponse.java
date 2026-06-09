@@ -1,7 +1,7 @@
 package com.gymsocial.challenge.dto;
 
 public record ChallengeRankingResponse(
-    long userId,
+    String userCode,
     String name,
     String profileImageUrl,
     int score

@@ -57,7 +57,7 @@ export function GroupPage() {
   const navigate = useNavigate();
   const [group, setGroup] = useState<Group | null>(null);
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<number>();
+  const [currentUserCode, setCurrentUserCode] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [submitError, setSubmitError] = useState("");
@@ -95,7 +95,7 @@ export function GroupPage() {
       .then(([currentGroup, currentUser, currentCheckIns]) => {
         if (active) {
           setGroup(currentGroup);
-          setCurrentUserId(currentUser.id);
+          setCurrentUserCode(currentUser.code);
           setCheckIns(currentCheckIns);
         }
       })
@@ -190,7 +190,7 @@ export function GroupPage() {
       ) : group ? (
         <CurrentGroup
           group={group}
-          isAdministrator={group.adminUserId === currentUserId}
+          isAdministrator={group.adminUserCode === currentUserCode}
           checkIns={checkIns}
         />
       ) : (
@@ -627,7 +627,7 @@ function CheckInCard({ checkIn }: { checkIn: CheckIn }) {
         <div className="mt-auto flex min-w-0 items-center justify-between gap-3 pt-1">
           <div className="flex min-w-0 items-center gap-2">
             <Link
-              to={`/perfil/${checkIn.authorUserId}`}
+              to={`/perfil/${checkIn.authorCode}`}
               className="grid size-6 shrink-0 overflow-hidden rounded-md bg-brand-50 text-[10px] font-black text-brand-700"
             >
               {checkIn.authorImageUrl ? (
@@ -643,7 +643,7 @@ function CheckInCard({ checkIn }: { checkIn: CheckIn }) {
               )}
             </Link>
             <Link
-              to={`/perfil/${checkIn.authorUserId}`}
+              to={`/perfil/${checkIn.authorCode}`}
               className="truncate text-xs font-extrabold text-ink-950 transition hover:text-brand-700 sm:text-sm"
             >
               {checkIn.authorName ?? "Membro do grupo"}

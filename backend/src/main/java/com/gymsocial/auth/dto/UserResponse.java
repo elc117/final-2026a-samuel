@@ -3,7 +3,7 @@ package com.gymsocial.auth.dto;
 import com.gymsocial.user.User;
 
 public record UserResponse(
-    Long id,
+    String code,
     String name,
     String username,
     String email,
@@ -11,13 +11,13 @@ public record UserResponse(
     String createdAt
 ) {
 
-    public static UserResponse from(User user) {
-        return from(user, user.profileImageUrl());
-    }
-
-    public static UserResponse from(User user, String profileImageUrl) {
+    public static UserResponse from(
+        User user,
+        String code,
+        String profileImageUrl
+    ) {
         return new UserResponse(
-            user.id(),
+            code,
             user.name(),
             user.username(),
             user.email(),

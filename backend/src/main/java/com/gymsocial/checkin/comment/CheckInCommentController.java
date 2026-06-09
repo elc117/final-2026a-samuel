@@ -4,6 +4,7 @@ import com.gymsocial.shared.exception.NotFoundException;
 import com.gymsocial.shared.exception.ValidationException;
 import com.gymsocial.shared.http.AuthenticatedUserContext;
 import com.gymsocial.shared.storage.ImageStorage;
+import com.gymsocial.shared.id.PublicIdCodec;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 
@@ -14,13 +15,16 @@ public final class CheckInCommentController {
 
     private final CheckInCommentRepository repository;
     private final ImageStorage imageStorage;
+    private final PublicIdCodec publicIdCodec;
 
     public CheckInCommentController(
         CheckInCommentRepository repository,
-        ImageStorage imageStorage
+        ImageStorage imageStorage,
+        PublicIdCodec publicIdCodec
     ) {
         this.repository = repository;
         this.imageStorage = imageStorage;
+        this.publicIdCodec = publicIdCodec;
     }
 
     public void list(Context context) {
@@ -58,7 +62,7 @@ public final class CheckInCommentController {
     ) {
         return new CommentResponse(
             result.id(),
-            result.authorUserId(),
+            publicIdCodec.encode(result.authorUserId()),
             result.authorName(),
             result.authorImageKey() == null
                 ? null
@@ -81,7 +85,7 @@ public final class CheckInCommentController {
 
     private record CommentResponse(
         UUID id,
-        long authorUserId,
+        String authorCode,
         String authorName,
         String authorImageUrl,
         String content,

@@ -3,6 +3,7 @@ package com.gymsocial.auth;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.gymsocial.shared.id.PublicIdCodec;
 import com.gymsocial.user.User;
 
 import java.time.Duration;
@@ -17,9 +18,11 @@ public final class JwtService {
 
     private final Algorithm algorithm;
     private final JWTVerifier verifier;
+    private final PublicIdCodec publicIdCodec;
 
-    public JwtService(String secret) {
+    public JwtService(String secret, PublicIdCodec publicIdCodec) {
         this.algorithm = Algorithm.HMAC256(secret);
+        this.publicIdCodec = publicIdCodec;
         this.verifier = JWT.require(algorithm)
             .withIssuer(ISSUER)
             .build();
@@ -30,7 +33,7 @@ public final class JwtService {
 
         return JWT.create()
             .withIssuer(ISSUER)
-            .withSubject(user.id().toString())
+            .withSubject(publicIdCodec.encode(user.id()))
             .withJWTId(UUID.randomUUID().toString())
             .withIssuedAt(now)
             .withExpiresAt(now.plus(ACCESS_TOKEN_DURATION))
@@ -44,6 +47,9 @@ public final class JwtService {
             throw new IllegalArgumentException("Token subject is missing");
         }
 
-        return Long.parseLong(subject);
+        return publicIdCodec.decode(subject)
+            .orElseThrow(() -> new IllegalArgumentException(
+                "Token subject is invalid"
+            ));
     }
 }

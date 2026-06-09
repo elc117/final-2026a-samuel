@@ -1,6 +1,5 @@
 package com.gymsocial.challenge;
 
-import com.gymsocial.challenge.dto.ChallengeRankingResponse;
 import com.gymsocial.shared.exception.ConflictException;
 import com.gymsocial.shared.exception.NotFoundException;
 
@@ -165,7 +164,7 @@ public final class ChallengeRepository {
         }
     }
 
-    public List<ChallengeRankingResponse> findRanking(Challenge challenge) {
+    public List<RankingEntry> findRanking(Challenge challenge) {
         String query = challenge.allowMultipleCheckInsPerDay()
             ? FIND_RANKING_MULTIPLE
             : FIND_RANKING_DAILY;
@@ -178,9 +177,9 @@ public final class ChallengeRepository {
             statement.setObject(2, challenge.endsAt());
             statement.setObject(3, challenge.groupId());
             try (var resultSet = statement.executeQuery()) {
-                List<ChallengeRankingResponse> ranking = new ArrayList<>();
+                List<RankingEntry> ranking = new ArrayList<>();
                 while (resultSet.next()) {
-                    ranking.add(new ChallengeRankingResponse(
+                    ranking.add(new RankingEntry(
                         resultSet.getLong("id"),
                         resultSet.getString("name"),
                         resultSet.getString("profile_image_url"),
@@ -301,5 +300,13 @@ public final class ChallengeRepository {
     }
 
     public record GroupAccess(UUID groupId, long adminUserId) {
+    }
+
+    public record RankingEntry(
+        long userId,
+        String name,
+        String profileImageUrl,
+        int score
+    ) {
     }
 }

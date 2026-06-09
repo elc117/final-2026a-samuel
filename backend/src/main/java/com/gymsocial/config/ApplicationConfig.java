@@ -6,6 +6,7 @@ public record ApplicationConfig(
     String databaseUser,
     String databasePassword,
     String jwtSecret,
+    String hashidsSalt,
     String corsAllowedOrigin,
     boolean cookieSecure,
     String s3Endpoint,
@@ -18,13 +19,20 @@ public record ApplicationConfig(
 
     private static final int DEFAULT_PORT = 7000;
     private static final int MINIMUM_JWT_SECRET_LENGTH = 32;
+    private static final int MINIMUM_HASHIDS_SALT_LENGTH = 16;
 
     public static ApplicationConfig fromEnvironment() {
         String jwtSecret = required("JWT_SECRET");
+        String hashidsSalt = required("HASHIDS_SALT");
 
         if (jwtSecret.length() < MINIMUM_JWT_SECRET_LENGTH) {
             throw new IllegalStateException(
                 "JWT_SECRET must contain at least 32 characters"
+            );
+        }
+        if (hashidsSalt.length() < MINIMUM_HASHIDS_SALT_LENGTH) {
+            throw new IllegalStateException(
+                "HASHIDS_SALT must contain at least 16 characters"
             );
         }
 
@@ -34,6 +42,7 @@ public record ApplicationConfig(
             required("DATABASE_USER"),
             required("DATABASE_PASSWORD"),
             jwtSecret,
+            hashidsSalt,
             optional(
                 "CORS_ALLOWED_ORIGIN",
                 "http://localhost:5173,http://127.0.0.1:5173"

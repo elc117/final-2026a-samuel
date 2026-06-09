@@ -9,6 +9,7 @@ import com.gymsocial.auth.RefreshTokenService;
 import com.gymsocial.config.middleware.JwtAuthenticationMiddleware;
 import com.gymsocial.shared.validation.RequestValidator;
 import com.gymsocial.shared.storage.ImageStorage;
+import com.gymsocial.shared.id.PublicIdCodec;
 import com.gymsocial.user.UserRepository;
 
 import javax.sql.DataSource;
@@ -21,11 +22,15 @@ public final class AuthModule {
     public static Components create(
         DataSource dataSource,
         ApplicationConfig appConfig,
-        ImageStorage imageStorage
+        ImageStorage imageStorage,
+        PublicIdCodec publicIdCodec
     ) {
         var userRepository = new UserRepository(dataSource);
 
-        var jwtService = new JwtService(appConfig.jwtSecret());
+        var jwtService = new JwtService(
+            appConfig.jwtSecret(),
+            publicIdCodec
+        );
 
         var authService = new AuthService(
             userRepository,
@@ -34,7 +39,8 @@ public final class AuthModule {
             new RefreshTokenService(),
             new RefreshTokenRepository(dataSource),
             new RequestValidator(),
-            imageStorage
+            imageStorage,
+            publicIdCodec
         );
 
         return new Components(

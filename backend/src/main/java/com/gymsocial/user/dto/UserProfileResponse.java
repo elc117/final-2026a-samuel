@@ -3,7 +3,7 @@ package com.gymsocial.user.dto;
 import com.gymsocial.user.User;
 
 public record UserProfileResponse(
-    Long id,
+    String code,
     String name,
     String username,
     String profileImageUrl,
@@ -12,11 +12,12 @@ public record UserProfileResponse(
 
     public static UserProfileResponse from(
         User user,
+        String code,
         String profileImageUrl,
         int friendCount
     ) {
         return new UserProfileResponse(
-            user.id(),
+            code,
             user.name(),
             user.username(),
             profileImageUrl,

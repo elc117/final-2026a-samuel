@@ -8,6 +8,7 @@ import com.gymsocial.checkin.comment.CheckInCommentRepository;
 import com.gymsocial.shared.storage.ImageFileValidator;
 import com.gymsocial.shared.storage.ImageStorage;
 import com.gymsocial.shared.validation.RequestValidator;
+import com.gymsocial.shared.id.PublicIdCodec;
 
 import javax.sql.DataSource;
 
@@ -18,20 +19,23 @@ public final class CheckInModule {
 
     public static Components create(
         DataSource dataSource,
-        ImageStorage imageStorage
+        ImageStorage imageStorage,
+        PublicIdCodec publicIdCodec
     ) {
         var service = new CheckInService(
             new CheckInRepository(dataSource),
             new RequestValidator(),
             new ImageFileValidator(),
-            imageStorage
+            imageStorage,
+            publicIdCodec
         );
 
         return new Components(
             new CheckInController(service),
             new CheckInCommentController(
                 new CheckInCommentRepository(dataSource),
-                imageStorage
+                imageStorage,
+                publicIdCodec
             )
         );
     }

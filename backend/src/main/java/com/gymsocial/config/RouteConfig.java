@@ -59,7 +59,7 @@ public final class RouteConfig {
         config.routes.before("/users/*", auth.middleware()::authenticate);
         config.routes.get("/users/me", userProfileController::current);
         config.routes.put("/users/me", userProfileController::update);
-        config.routes.get("/users/{userId}", userProfileController::find);
+        config.routes.get("/users/{userCode}", userProfileController::find);
 
         config.routes.before("/check-ins", auth.middleware()::authenticate);
         config.routes.before("/check-ins/*", auth.middleware()::authenticate);

@@ -2,7 +2,7 @@ import { apiRequest } from "../../../services/apiClient";
 
 export type Group = {
   id: string;
-  adminUserId: number;
+  adminUserCode: string;
   name: string;
   imageUrl: string | null;
   memberCount: number;

@@ -5,7 +5,7 @@ import {
 } from "./accessTokenStore";
 
 export type AuthUser = {
-  id: number;
+  code: string;
   name: string;
   username: string;
   email: string;

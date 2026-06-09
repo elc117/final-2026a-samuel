@@ -1,6 +1,5 @@
 package com.gymsocial.user;
 
-import com.gymsocial.shared.exception.NotFoundException;
 import com.gymsocial.shared.http.AuthenticatedUserContext;
 import com.gymsocial.shared.storage.ImageUpload;
 import com.gymsocial.user.dto.UpdateProfileRequest;
@@ -25,7 +24,7 @@ public final class UserProfileController {
         long viewerUserId = AuthenticatedUserContext.getUserId(context);
         context.json(userProfileService.findVisibleProfile(
             viewerUserId,
-            parseUserId(context)
+            context.pathParam("userCode")
         ));
     }
 
@@ -45,13 +44,5 @@ public final class UserProfileController {
             new UpdateProfileRequest(context.formParam("name")),
             image
         ));
-    }
-
-    private long parseUserId(Context context) {
-        try {
-            return Long.parseLong(context.pathParam("userId"));
-        } catch (NumberFormatException exception) {
-            throw new NotFoundException("Perfil não encontrado.");
-        }
     }
 }

@@ -58,7 +58,7 @@ export function ChallengePage() {
   const navigate = useNavigate();
   const [group, setGroup] = useState<Group>();
   const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<number>();
+  const [currentUserCode, setCurrentUserCode] = useState("");
   const [loadError, setLoadError] = useState("");
   const [actionError, setActionError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -96,7 +96,7 @@ export function ChallengePage() {
           return;
         }
         setGroup(currentGroup);
-        setCurrentUserId(currentUser.id);
+        setCurrentUserCode(currentUser.code);
         setChallenge(currentChallenge);
       })
       .catch((error) => active && setLoadError(getApiErrorMessage(error)))
@@ -135,7 +135,7 @@ export function ChallengePage() {
     }
   }
 
-  const isAdministrator = group?.adminUserId === currentUserId;
+  const isAdministrator = group?.adminUserCode === currentUserCode;
 
   return (
     <main className="min-h-screen bg-zinc-50">
@@ -241,7 +241,7 @@ function ActiveChallenge({
         <div className="mt-5 divide-y divide-zinc-100">
           {challenge.ranking.map((entry, index) => (
             <div
-              key={entry.userId}
+              key={entry.userCode}
               className="flex items-center gap-4 py-4 first:pt-0 last:pb-0"
             >
               <span className="w-7 text-center text-sm font-black text-zinc-400">
@@ -252,7 +252,7 @@ function ActiveChallenge({
                 )}
               </span>
               <Link
-                to={`/perfil/${entry.userId}`}
+                to={`/perfil/${entry.userCode}`}
                 className="grid size-10 shrink-0 overflow-hidden rounded-xl bg-brand-50 text-sm font-black text-brand-700"
               >
                 {entry.profileImageUrl ? (
@@ -268,7 +268,7 @@ function ActiveChallenge({
                 )}
               </Link>
               <Link
-                to={`/perfil/${entry.userId}`}
+                to={`/perfil/${entry.userCode}`}
                 className="min-w-0 flex-1 truncate text-sm font-extrabold text-ink-950 transition hover:text-brand-700"
               >
                 {entry.name}

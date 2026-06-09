@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public record GroupResponse(
     UUID id,
-    Long adminUserId,
+    String adminUserCode,
     String name,
     String imageUrl,
     int memberCount,
@@ -15,12 +15,13 @@ public record GroupResponse(
 
     public static GroupResponse from(
         Group group,
+        String adminUserCode,
         String imageUrl,
         int memberCount
     ) {
         return new GroupResponse(
             group.id(),
-            group.adminUserId(),
+            adminUserCode,
             group.name(),
             imageUrl,
             memberCount,

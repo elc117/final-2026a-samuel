@@ -38,7 +38,7 @@ export default function App() {
         />
         <Route path="/convite/:token" element={<GroupInvitationPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
-        <Route path="/perfil/:userId" element={<PublicProfilePage />} />
+        <Route path="/perfil/:userCode" element={<PublicProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

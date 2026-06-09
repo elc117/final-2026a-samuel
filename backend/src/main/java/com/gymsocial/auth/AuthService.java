@@ -7,6 +7,7 @@ import com.gymsocial.auth.dto.UserResponse;
 import com.gymsocial.shared.exception.ConflictException;
 import com.gymsocial.shared.exception.UnauthorizedException;
 import com.gymsocial.shared.storage.ImageStorage;
+import com.gymsocial.shared.id.PublicIdCodec;
 import com.gymsocial.shared.validation.RequestValidator;
 import com.gymsocial.user.User;
 import com.gymsocial.user.UserRepository;
@@ -24,6 +25,7 @@ public final class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final RequestValidator requestValidator;
     private final ImageStorage imageStorage;
+    private final PublicIdCodec publicIdCodec;
 
     public AuthService(
         UserRepository userRepository,
@@ -32,7 +34,8 @@ public final class AuthService {
         RefreshTokenService refreshTokenService,
         RefreshTokenRepository refreshTokenRepository,
         RequestValidator requestValidator,
-        ImageStorage imageStorage
+        ImageStorage imageStorage,
+        PublicIdCodec publicIdCodec
     ) {
         this.userRepository = userRepository;
         this.passwordHasher = passwordHasher;
@@ -41,6 +44,7 @@ public final class AuthService {
         this.refreshTokenRepository = refreshTokenRepository;
         this.requestValidator = requestValidator;
         this.imageStorage = imageStorage;
+        this.publicIdCodec = publicIdCodec;
     }
 
     public AuthResult register(RegisterRequest request) {
@@ -166,7 +170,11 @@ public final class AuthService {
             ? null
             : imageStorage.createReadUrl(user.profileImageUrl());
 
-        return UserResponse.from(user, profileImageUrl);
+        return UserResponse.from(
+            user,
+            publicIdCodec.encode(user.id()),
+            profileImageUrl
+        );
     }
 
     private String normalize(String value) {

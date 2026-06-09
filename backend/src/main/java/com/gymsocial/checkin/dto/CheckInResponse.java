@@ -7,7 +7,7 @@ import java.util.UUID;
 public record CheckInResponse(
     UUID id,
     UUID groupId,
-    Long authorUserId,
+    String authorCode,
     String authorName,
     String authorImageUrl,
     String title,
@@ -18,6 +18,7 @@ public record CheckInResponse(
 
     public static CheckInResponse from(
         CheckIn checkIn,
+        String authorCode,
         String authorName,
         String authorImageUrl,
         String imageUrl
@@ -25,7 +26,7 @@ public record CheckInResponse(
         return new CheckInResponse(
             checkIn.id(),
             checkIn.groupId(),
-            checkIn.authorUserId(),
+            authorCode,
             authorName,
             authorImageUrl,
             checkIn.title(),

@@ -3,7 +3,7 @@ import { apiRequest } from "../../../services/apiClient";
 export type CheckIn = {
   id: string;
   groupId: string;
-  authorUserId: number;
+  authorCode: string;
   authorName: string | null;
   authorImageUrl: string | null;
   title: string;
@@ -20,7 +20,7 @@ export type CreateCheckInRequest = {
 
 export type CheckInComment = {
   id: string;
-  authorUserId: number;
+  authorCode: string;
   authorName: string;
   authorImageUrl: string | null;
   content: string;
