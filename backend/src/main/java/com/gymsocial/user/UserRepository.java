@@ -39,6 +39,25 @@ public final class UserRepository {
         GROUP BY u.id
         """;
 
+    private static final String FIND_VISIBLE_PROFILE_BY_ID = """
+        SELECT u.id, u.name, u.username, u.email, u.password,
+               u.profile_image_url, u.status, u.created_at, u.updated_at,
+               COUNT(f.id) AS friend_count
+        FROM users u
+        JOIN group_members target_member ON target_member.user_id = u.id
+        JOIN group_members viewer_member
+            ON viewer_member.group_id = target_member.group_id
+            AND viewer_member.user_id = ?
+        LEFT JOIN friendships f
+            ON f.status = 'ACCEPTED'
+            AND (
+                f.requester_user_id = u.id OR
+                f.receiver_user_id = u.id
+            )
+        WHERE u.id = ?
+        GROUP BY u.id
+        """;
+
     private static final String EXISTS_BY_EMAIL = """
         SELECT EXISTS(SELECT 1 FROM users WHERE LOWER(email) = LOWER(?))
         """;
@@ -104,18 +123,45 @@ public final class UserRepository {
     }
 
     public Optional<UserProfile> findProfileById(long id) {
+        return findProfile(FIND_PROFILE_BY_ID, id);
+    }
+
+    public Optional<UserProfile> findVisibleProfileById(
+        long viewerUserId,
+        long profileUserId
+    ) {
         try (
             var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement(FIND_PROFILE_BY_ID)
+            var statement = connection.prepareStatement(
+                FIND_VISIBLE_PROFILE_BY_ID
+            )
+        ) {
+            statement.setLong(1, viewerUserId);
+            statement.setLong(2, profileUserId);
+
+            try (var resultSet = statement.executeQuery()) {
+                return resultSet.next()
+                    ? Optional.of(mapProfile(resultSet))
+                    : Optional.empty();
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException(
+                "Could not query visible user profile",
+                exception
+            );
+        }
+    }
+
+    private Optional<UserProfile> findProfile(String query, long id) {
+        try (
+            var connection = dataSource.getConnection();
+            var statement = connection.prepareStatement(query)
         ) {
             statement.setLong(1, id);
 
             try (var resultSet = statement.executeQuery()) {
                 return resultSet.next()
-                    ? Optional.of(new UserProfile(
-                        mapUser(resultSet),
-                        resultSet.getInt("friend_count")
-                    ))
+                    ? Optional.of(mapProfile(resultSet))
                     : Optional.empty();
             }
         } catch (SQLException exception) {
@@ -124,6 +170,13 @@ public final class UserRepository {
                 exception
             );
         }
+    }
+
+    private UserProfile mapProfile(ResultSet resultSet) throws SQLException {
+        return new UserProfile(
+            mapUser(resultSet),
+            resultSet.getInt("friend_count")
+        );
     }
 
     public boolean existsByEmail(String email) {

@@ -101,15 +101,20 @@ export function CheckInDetailsPage() {
 
               <div className="flex flex-col p-6 sm:p-8">
                 <div className="flex items-center gap-3">
-                  <Avatar
-                    name={checkIn.authorName}
-                    imageUrl={checkIn.authorImageUrl}
-                    large
-                  />
+                  <Link to={`/perfil/${checkIn.authorUserId}`}>
+                    <Avatar
+                      name={checkIn.authorName}
+                      imageUrl={checkIn.authorImageUrl}
+                      large
+                    />
+                  </Link>
                   <div>
-                    <p className="text-sm font-extrabold text-ink-950">
+                    <Link
+                      to={`/perfil/${checkIn.authorUserId}`}
+                      className="text-sm font-extrabold text-ink-950 transition hover:text-brand-700"
+                    >
                       {checkIn.authorName ?? "Membro do grupo"}
-                    </p>
+                    </Link>
                     <p className="mt-1 flex items-center gap-1.5 text-xs text-zinc-500">
                       <Clock size={13} />
                       {formatDate(checkIn.createdAt)}
@@ -139,15 +144,20 @@ export function CheckInDetailsPage() {
                 ) : (
                   comments.map((current) => (
                     <article key={current.id} className="flex gap-3 py-4 first:pt-0">
-                      <Avatar
-                        name={current.authorName}
-                        imageUrl={current.authorImageUrl}
-                      />
+                      <Link to={`/perfil/${current.authorUserId}`}>
+                        <Avatar
+                          name={current.authorName}
+                          imageUrl={current.authorImageUrl}
+                        />
+                      </Link>
                       <div className="min-w-0 flex-1">
                         <div className="flex justify-between gap-3">
-                          <p className="text-sm font-extrabold text-ink-950">
+                          <Link
+                            to={`/perfil/${current.authorUserId}`}
+                            className="text-sm font-extrabold text-ink-950 transition hover:text-brand-700"
+                          >
                             {current.authorName}
-                          </p>
+                          </Link>
                           <time className="shrink-0 text-xs text-zinc-400">
                             {formatDate(current.createdAt)}
                           </time>

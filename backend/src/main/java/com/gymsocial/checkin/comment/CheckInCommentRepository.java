@@ -23,7 +23,8 @@ public final class CheckInCommentRepository {
         """;
 
     private static final String FIND_BY_CHECK_IN = """
-        SELECT comment.id, author.name AS author_name,
+        SELECT comment.id, author.id AS author_user_id,
+               author.name AS author_name,
                author.profile_image_url AS author_image_url,
                comment.content, comment.created_at
         FROM check_in_comments comment
@@ -35,7 +36,8 @@ public final class CheckInCommentRepository {
         """;
 
     private static final String FIND_BY_ID = """
-        SELECT comment.id, author.name AS author_name,
+        SELECT comment.id, author.id AS author_user_id,
+               author.name AS author_name,
                author.profile_image_url AS author_image_url,
                comment.content, comment.created_at
         FROM check_in_comments comment
@@ -62,6 +64,7 @@ public final class CheckInCommentRepository {
                 while (resultSet.next()) {
                     comments.add(new CommentResult(
                         resultSet.getObject("id", UUID.class),
+                        resultSet.getLong("author_user_id"),
                         resultSet.getString("author_name"),
                         resultSet.getString("author_image_url"),
                         resultSet.getString("content"),
@@ -106,6 +109,7 @@ public final class CheckInCommentRepository {
                 resultSet.next();
                 return new CommentResult(
                     resultSet.getObject("id", UUID.class),
+                    resultSet.getLong("author_user_id"),
                     resultSet.getString("author_name"),
                     resultSet.getString("author_image_url"),
                     resultSet.getString("content"),
@@ -119,6 +123,7 @@ public final class CheckInCommentRepository {
 
     public record CommentResult(
         UUID id,
+        long authorUserId,
         String authorName,
         String authorImageKey,
         String content,

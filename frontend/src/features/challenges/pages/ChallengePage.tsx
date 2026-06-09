@@ -251,7 +251,10 @@ function ActiveChallenge({
                   index + 1
                 )}
               </span>
-              <span className="grid size-10 shrink-0 overflow-hidden rounded-xl bg-brand-50 text-sm font-black text-brand-700">
+              <Link
+                to={`/perfil/${entry.userId}`}
+                className="grid size-10 shrink-0 overflow-hidden rounded-xl bg-brand-50 text-sm font-black text-brand-700"
+              >
                 {entry.profileImageUrl ? (
                   <img
                     src={entry.profileImageUrl}
@@ -263,10 +266,13 @@ function ActiveChallenge({
                     {entry.name.charAt(0).toUpperCase()}
                   </span>
                 )}
-              </span>
-              <p className="min-w-0 flex-1 truncate text-sm font-extrabold text-ink-950">
+              </Link>
+              <Link
+                to={`/perfil/${entry.userId}`}
+                className="min-w-0 flex-1 truncate text-sm font-extrabold text-ink-950 transition hover:text-brand-700"
+              >
                 {entry.name}
-              </p>
+              </Link>
               <strong className="text-sm text-brand-700">
                 {entry.score} {entry.score === 1 ? "check-in" : "check-ins"}
               </strong>

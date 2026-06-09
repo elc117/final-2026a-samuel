@@ -20,6 +20,7 @@ export type CreateCheckInRequest = {
 
 export type CheckInComment = {
   id: string;
+  authorUserId: number;
   authorName: string;
   authorImageUrl: string | null;
   content: string;

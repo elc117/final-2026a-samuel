@@ -1,5 +1,6 @@
 package com.gymsocial.user;
 
+import com.gymsocial.shared.exception.NotFoundException;
 import com.gymsocial.shared.exception.UnauthorizedException;
 import com.gymsocial.shared.storage.ImageFileValidator;
 import com.gymsocial.shared.storage.ImageStorage;
@@ -34,6 +35,19 @@ public final class UserProfileService {
             .findProfileById(userId)
             .orElseThrow(() -> new UnauthorizedException(
                 "Usuário autenticado não encontrado."
+            ));
+
+        return toResponse(profile);
+    }
+
+    public UserProfileResponse findVisibleProfile(
+        long viewerUserId,
+        long profileUserId
+    ) {
+        UserRepository.UserProfile profile = userRepository
+            .findVisibleProfileById(viewerUserId, profileUserId)
+            .orElseThrow(() -> new NotFoundException(
+                "Perfil não encontrado."
             ));
 
         return toResponse(profile);

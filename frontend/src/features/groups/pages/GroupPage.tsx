@@ -596,29 +596,40 @@ type IconComponent = typeof Users;
 
 function CheckInCard({ checkIn }: { checkIn: CheckIn }) {
   return (
-    <Link
-      to={`/grupo/check-ins/${checkIn.id}`}
-      className="flex w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-2 shadow-sm transition hover:border-brand-200 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-brand-50"
-    >
-      <img
-        src={checkIn.imageUrl}
-        alt={`Check-in: ${checkIn.title}`}
-        className="size-14 shrink-0 rounded-lg border border-zinc-300 bg-zinc-100 object-cover"
-      />
+    <article className="flex w-full overflow-hidden rounded-xl border border-zinc-200 bg-white p-2 shadow-sm transition hover:border-brand-200 hover:shadow-md">
+      <Link
+        to={`/grupo/check-ins/${checkIn.id}`}
+        className="size-14 shrink-0 rounded-lg focus:outline-none focus:ring-4 focus:ring-brand-50"
+      >
+        <img
+          src={checkIn.imageUrl}
+          alt={`Check-in: ${checkIn.title}`}
+          className="size-full rounded-lg border border-zinc-300 bg-zinc-100 object-cover"
+        />
+      </Link>
       <div className="flex min-w-0 flex-1 flex-col px-3 py-1 sm:px-4">
-        <h3 className="truncate text-sm font-black text-ink-950 sm:text-base">
+        <Link
+          to={`/grupo/check-ins/${checkIn.id}`}
+          className="truncate text-sm font-black text-ink-950 transition hover:text-brand-700 sm:text-base"
+        >
           {checkIn.title}
-        </h3>
+        </Link>
 
         {checkIn.description && (
-          <p className="mt-0.5 line-clamp-1 whitespace-pre-wrap text-xs leading-5 text-zinc-500 sm:text-sm">
+          <Link
+            to={`/grupo/check-ins/${checkIn.id}`}
+            className="mt-0.5 line-clamp-1 whitespace-pre-wrap text-xs leading-5 text-zinc-500 sm:text-sm"
+          >
             {checkIn.description}
-          </p>
+          </Link>
         )}
 
         <div className="mt-auto flex min-w-0 items-center justify-between gap-3 pt-1">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="grid size-6 shrink-0 overflow-hidden rounded-md bg-brand-50 text-[10px] font-black text-brand-700">
+            <Link
+              to={`/perfil/${checkIn.authorUserId}`}
+              className="grid size-6 shrink-0 overflow-hidden rounded-md bg-brand-50 text-[10px] font-black text-brand-700"
+            >
               {checkIn.authorImageUrl ? (
                 <img
                   src={checkIn.authorImageUrl}
@@ -630,10 +641,13 @@ function CheckInCard({ checkIn }: { checkIn: CheckIn }) {
                   {(checkIn.authorName?.trim().charAt(0) || "?").toUpperCase()}
                 </span>
               )}
-            </span>
-            <p className="truncate text-xs font-extrabold text-ink-950 sm:text-sm">
+            </Link>
+            <Link
+              to={`/perfil/${checkIn.authorUserId}`}
+              className="truncate text-xs font-extrabold text-ink-950 transition hover:text-brand-700 sm:text-sm"
+            >
               {checkIn.authorName ?? "Membro do grupo"}
-            </p>
+            </Link>
           </div>
 
           <p className="flex shrink-0 items-center gap-1 text-[10px] text-zinc-500 sm:text-xs">
@@ -645,7 +659,7 @@ function CheckInCard({ checkIn }: { checkIn: CheckIn }) {
           </p>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 

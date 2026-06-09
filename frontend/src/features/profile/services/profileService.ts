@@ -17,6 +17,10 @@ export function getProfile(): Promise<UserProfile> {
   return apiRequest<UserProfile>("/users/me");
 }
 
+export function getPublicProfile(userId: number): Promise<UserProfile> {
+  return apiRequest<UserProfile>(`/users/${userId}`);
+}
+
 export function updateProfile(request: UpdateProfileRequest): Promise<UserProfile> {
   const formData = new FormData();
   formData.set("name", request.name);

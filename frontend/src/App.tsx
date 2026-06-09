@@ -8,6 +8,7 @@ import { GroupSectionPage } from "./features/groups/pages/GroupSectionPage";
 import { CreateCheckInPage } from "./features/checkins/pages/CreateCheckInPage";
 import { CheckInDetailsPage } from "./features/checkins/pages/CheckInDetailsPage";
 import { ProfilePage } from "./features/profile/pages/ProfilePage";
+import { PublicProfilePage } from "./features/profile/pages/PublicProfilePage";
 import { ChallengePage } from "./features/challenges/pages/ChallengePage";
 
 export default function App() {
@@ -37,6 +38,7 @@ export default function App() {
         />
         <Route path="/convite/:token" element={<GroupInvitationPage />} />
         <Route path="/perfil" element={<ProfilePage />} />
+        <Route path="/perfil/:userId" element={<PublicProfilePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>

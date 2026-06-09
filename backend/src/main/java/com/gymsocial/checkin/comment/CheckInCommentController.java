@@ -58,6 +58,7 @@ public final class CheckInCommentController {
     ) {
         return new CommentResponse(
             result.id(),
+            result.authorUserId(),
             result.authorName(),
             result.authorImageKey() == null
                 ? null
@@ -80,6 +81,7 @@ public final class CheckInCommentController {
 
     private record CommentResponse(
         UUID id,
+        long authorUserId,
         String authorName,
         String authorImageUrl,
         String content,
