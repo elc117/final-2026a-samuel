@@ -1,46 +1,92 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { LoginPage } from "./features/auth/pages/LoginPage";
-import { RegisterPage } from "./features/auth/pages/RegisterPage";
 import { GuestOnly, RequireAuth } from "./features/auth/components/AuthGuard";
-import { GroupPage } from "./features/groups/pages/GroupPage";
-import { GroupInvitationPage } from "./features/groups/pages/GroupInvitationPage";
-import { GroupSectionPage } from "./features/groups/pages/GroupSectionPage";
-import { CreateCheckInPage } from "./features/checkins/pages/CreateCheckInPage";
-import { CheckInDetailsPage } from "./features/checkins/pages/CheckInDetailsPage";
-import { ProfilePage } from "./features/profile/pages/ProfilePage";
-import { PublicProfilePage } from "./features/profile/pages/PublicProfilePage";
-import { ChallengePage } from "./features/challenges/pages/ChallengePage";
+
+const LoginPage = lazy(() =>
+  import("./features/auth/pages/LoginPage").then((module) => ({
+    default: module.LoginPage,
+  })),
+);
+const RegisterPage = lazy(() =>
+  import("./features/auth/pages/RegisterPage").then((module) => ({
+    default: module.RegisterPage,
+  })),
+);
+const GroupPage = lazy(() =>
+  import("./features/groups/pages/GroupPage").then((module) => ({
+    default: module.GroupPage,
+  })),
+);
+const GroupInvitationPage = lazy(() =>
+  import("./features/groups/pages/GroupInvitationPage").then((module) => ({
+    default: module.GroupInvitationPage,
+  })),
+);
+const GroupSectionPage = lazy(() =>
+  import("./features/groups/pages/GroupSectionPage").then((module) => ({
+    default: module.GroupSectionPage,
+  })),
+);
+const CreateCheckInPage = lazy(() =>
+  import("./features/checkins/pages/CreateCheckInPage").then((module) => ({
+    default: module.CreateCheckInPage,
+  })),
+);
+const CheckInDetailsPage = lazy(() =>
+  import("./features/checkins/pages/CheckInDetailsPage").then((module) => ({
+    default: module.CheckInDetailsPage,
+  })),
+);
+const ProfilePage = lazy(() =>
+  import("./features/profile/pages/ProfilePage").then((module) => ({
+    default: module.ProfilePage,
+  })),
+);
+const PublicProfilePage = lazy(() =>
+  import("./features/profile/pages/PublicProfilePage").then((module) => ({
+    default: module.PublicProfilePage,
+  })),
+);
+const ChallengePage = lazy(() =>
+  import("./features/challenges/pages/ChallengePage").then((module) => ({
+    default: module.ChallengePage,
+  })),
+);
 
 export default function App() {
   return (
-    <Routes>
-      <Route element={<GuestOnly />}>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/cadastro" element={<RegisterPage />} />
-      </Route>
-      <Route element={<RequireAuth />}>
-        <Route path="/grupo" element={<GroupPage />} />
-        <Route
-          path="/grupo/ranking"
-          element={<ChallengePage />}
-        />
-        <Route
-          path="/grupo/check-in"
-          element={<CreateCheckInPage />}
-        />
-        <Route
-          path="/grupo/check-ins/:checkInId"
-          element={<CheckInDetailsPage />}
-        />
-        <Route
-          path="/grupo/detalhes"
-          element={<GroupSectionPage section="details" />}
-        />
-        <Route path="/convite/:token" element={<GroupInvitationPage />} />
-        <Route path="/perfil" element={<ProfilePage />} />
-        <Route path="/perfil/:userCode" element={<PublicProfilePage />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+    <Suspense fallback={<RouteLoading />}>
+      <Routes>
+        <Route element={<GuestOnly />}>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/cadastro" element={<RegisterPage />} />
+        </Route>
+        <Route element={<RequireAuth />}>
+          <Route path="/grupo" element={<GroupPage />} />
+          <Route path="/grupo/ranking" element={<ChallengePage />} />
+          <Route path="/grupo/check-in" element={<CreateCheckInPage />} />
+          <Route
+            path="/grupo/check-ins/:checkInId"
+            element={<CheckInDetailsPage />}
+          />
+          <Route
+            path="/grupo/detalhes"
+            element={<GroupSectionPage section="details" />}
+          />
+          <Route path="/convite/:token" element={<GroupInvitationPage />} />
+          <Route path="/perfil" element={<ProfilePage />} />
+          <Route path="/perfil/:userCode" element={<PublicProfilePage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </Suspense>
+  );
+}
+
+function RouteLoading() {
+  return (
+    <main className="grid min-h-screen place-items-center bg-zinc-50">
+      <p className="text-sm font-bold text-zinc-500">Carregando página...</p>
+    </main>
   );
 }
