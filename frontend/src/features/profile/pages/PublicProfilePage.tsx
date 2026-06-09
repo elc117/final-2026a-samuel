@@ -1,4 +1,4 @@
-import { ArrowLeft, UserRound, Users } from "lucide-react";
+import { ArrowLeft, Check, UserPlus, UserRound, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
@@ -16,6 +16,7 @@ export function PublicProfilePage() {
   const { userCode = "" } = useParams();
   const [profile, setProfile] = useState<UserProfile>();
   const [error, setError] = useState("");
+  const [connectionRequested, setConnectionRequested] = useState(false);
   const hasInvalidUserCode = !/^[A-Za-z0-9]{10,}$/.test(userCode);
 
   useEffect(() => {
@@ -71,9 +72,9 @@ export function PublicProfilePage() {
             </div>
 
             <div className="px-6 pb-8 sm:px-10 sm:pb-10">
-              <div className="-mt-16 flex flex-col items-start gap-5 sm:flex-row sm:items-end sm:justify-between">
-                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end">
-                  <div className="grid size-32 overflow-hidden rounded-[2rem] border-4 border-white bg-brand-50 text-brand-600 shadow-xl">
+              <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0">
+                  <div className="relative z-10 -mt-16 grid size-32 overflow-hidden rounded-[2rem] border-4 border-white bg-brand-50 text-brand-600 shadow-xl">
                     {profile.profileImageUrl ? (
                       <img
                         src={profile.profileImageUrl}
@@ -85,26 +86,48 @@ export function PublicProfilePage() {
                     )}
                   </div>
 
-                  <div className="pb-1">
+                  <div className="mt-4">
                     <p className="text-sm font-bold text-brand-600">
                       @{profile.username}
                     </p>
-                    <h1 className="mt-1 text-3xl font-black tracking-[-0.04em] text-ink-950 sm:text-4xl">
+                    <h1 className="mt-1 break-words text-3xl font-black tracking-[-0.04em] text-ink-950 sm:text-4xl">
                       {profile.name}
                     </h1>
                   </div>
                 </div>
 
-                <div className="flex min-w-40 items-center gap-3 rounded-2xl bg-brand-50 px-5 py-4 text-brand-700">
-                  <Users size={24} />
-                  <div>
-                    <strong className="block text-2xl font-black leading-none">
-                      {profile.friendCount}
-                    </strong>
-                    <span className="text-xs font-extrabold uppercase tracking-wider">
+                <div className="flex w-full flex-wrap items-center gap-4 sm:w-auto sm:justify-end">
+                  <div className="flex items-center gap-2 text-sm font-bold text-zinc-500">
+                    <Users size={18} className="text-brand-600" />
+                    <span>
+                      <strong className="text-ink-950">
+                        {profile.friendCount}
+                      </strong>{" "}
                       {profile.friendCount === 1 ? "amigo" : "amigos"}
                     </span>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setConnectionRequested((current) => !current)}
+                    className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border px-3.5 text-xs font-extrabold transition ${
+                      connectionRequested
+                        ? "border-brand-200 bg-brand-50 text-brand-700 hover:bg-brand-100"
+                        : "border-brand-200 bg-white text-brand-700 hover:bg-brand-50"
+                    }`}
+                  >
+                    {connectionRequested ? (
+                      <>
+                        <Check size={18} />
+                        Solicitação enviada
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus size={18} />
+                        Conectar
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
