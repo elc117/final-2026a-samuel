@@ -49,6 +49,11 @@ public final class ApplicationModule {
             imageStorage,
             publicIdCodec
         );
+        var chatController = ChatModule.create(
+            dataSource,
+            imageStorage,
+            publicIdCodec
+        );
 
         return JavalinConfig.create(
             appConfig,
@@ -59,7 +64,8 @@ public final class ApplicationModule {
             userProfileController,
             friendship.controller(),
             checkIn,
-            challengeController
+            challengeController,
+            chatController
         );
     }
 }

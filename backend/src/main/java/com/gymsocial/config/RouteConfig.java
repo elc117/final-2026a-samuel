@@ -1,6 +1,7 @@
 package com.gymsocial.config;
 
 import com.gymsocial.challenge.ChallengeController;
+import com.gymsocial.chat.ChatController;
 import com.gymsocial.group.GroupController;
 import com.gymsocial.group.invitation.GroupInvitationController;
 import com.gymsocial.user.UserProfileController;
@@ -20,7 +21,8 @@ public final class RouteConfig {
         UserProfileController userProfileController,
         FriendshipController friendshipController,
         CheckInModule.Components checkIn,
-        ChallengeController challengeController
+        ChallengeController challengeController,
+        ChatController chatController
     ) {
         config.routes.get("/health", context ->
             context
@@ -117,5 +119,11 @@ public final class RouteConfig {
             "/challenges/current",
             challengeController::endCurrent
         );
+
+        config.routes.before("/chat", auth.middleware()::authenticate);
+        config.routes.before("/chat/*", auth.middleware()::authenticate);
+        config.routes.get("/chat/session", chatController::session);
+        config.routes.get("/chat/messages", chatController::list);
+        config.routes.post("/chat/messages", chatController::send);
     }
 }
