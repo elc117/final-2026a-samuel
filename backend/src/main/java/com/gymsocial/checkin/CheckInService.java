@@ -1,8 +1,10 @@
 package com.gymsocial.checkin;
 
 import com.gymsocial.checkin.dto.CheckInResponse;
+import com.gymsocial.checkin.dto.CheckInPageResponse;
 import com.gymsocial.checkin.dto.CreateCheckInRequest;
 import com.gymsocial.shared.exception.ForbiddenException;
+import com.gymsocial.shared.exception.NotFoundException;
 import com.gymsocial.shared.exception.ValidationException;
 import com.gymsocial.shared.storage.ImageFileValidator;
 import com.gymsocial.shared.storage.ImageStorage;
@@ -11,6 +13,8 @@ import com.gymsocial.shared.validation.RequestValidator;
 import com.gymsocial.shared.id.PublicIdCodec;
 
 import java.time.Instant;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -18,6 +22,7 @@ import java.util.UUID;
 public final class CheckInService {
 
     private static final int MAXIMUM_IMAGE_BYTES = 2 * 1024 * 1024;
+    private static final int MAXIMUM_PAGE_SIZE = 30;
 
     private final CheckInRepository repository;
     private final RequestValidator requestValidator;
@@ -88,14 +93,54 @@ public final class CheckInService {
         );
     }
 
-    public List<CheckInResponse> findCurrentGroupCheckIns(long userId) {
-        return repository.findByGroupMember(userId).stream()
+    public CheckInPageResponse findCurrentGroupCheckIns(
+        long userId,
+        String encodedCursor,
+        int pageSize
+    ) {
+        if (pageSize < 1 || pageSize > MAXIMUM_PAGE_SIZE) {
+            throw new ValidationException(Map.of(
+                "limit",
+                "O limite deve estar entre 1 e 30."
+            ));
+        }
+
+        CheckInRepository.InstantCursor cursor = decodeCursor(encodedCursor);
+        List<CheckInRepository.CheckInWithAuthor> results =
+            repository.findPageByGroupMember(
+                userId,
+                cursor,
+                pageSize + 1
+            );
+        boolean hasMore = results.size() > pageSize;
+        List<CheckInRepository.CheckInWithAuthor> pageResults = hasMore
+            ? results.subList(0, pageSize)
+            : results;
+        List<CheckInResponse> items = pageResults.stream()
             .map(result -> toResponse(
                 result.checkIn(),
                 result.authorName(),
                 result.authorImageUrl()
             ))
             .toList();
+        String nextCursor = hasMore && !pageResults.isEmpty()
+            ? encodeCursor(pageResults.getLast().checkIn())
+            : null;
+
+        return new CheckInPageResponse(items, nextCursor, hasMore);
+    }
+
+    public CheckInResponse findCheckIn(long userId, UUID checkInId) {
+        var result = repository.findByIdForMember(checkInId, userId)
+            .orElseThrow(() -> new NotFoundException(
+                "Check-in não encontrado."
+            ));
+
+        return toResponse(
+            result.checkIn(),
+            result.authorName(),
+            result.authorImageUrl()
+        );
     }
 
     private String uploadImage(UUID checkInId, ImageUpload image) {
@@ -139,6 +184,45 @@ public final class CheckInService {
             authorImageUrl,
             imageUrl
         );
+    }
+
+    private String encodeCursor(CheckIn checkIn) {
+        String value = "%s|%s".formatted(
+            checkIn.createdAt(),
+            checkIn.id()
+        );
+        return Base64.getUrlEncoder()
+            .withoutPadding()
+            .encodeToString(value.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private CheckInRepository.InstantCursor decodeCursor(
+        String encodedCursor
+    ) {
+        if (encodedCursor == null || encodedCursor.isBlank()) {
+            return null;
+        }
+
+        try {
+            String value = new String(
+                Base64.getUrlDecoder().decode(encodedCursor),
+                StandardCharsets.UTF_8
+            );
+            int separator = value.lastIndexOf('|');
+            if (separator <= 0 || separator == value.length() - 1) {
+                throw new IllegalArgumentException("Invalid cursor");
+            }
+
+            return new CheckInRepository.InstantCursor(
+                Instant.parse(value.substring(0, separator)),
+                UUID.fromString(value.substring(separator + 1))
+            );
+        } catch (IllegalArgumentException exception) {
+            throw new ValidationException(Map.of(
+                "cursor",
+                "Cursor de paginação inválido."
+            ));
+        }
     }
 
     private void deleteQuietly(String imageKey, RuntimeException exception) {

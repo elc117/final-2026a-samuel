@@ -15,7 +15,12 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
@@ -53,6 +58,12 @@ export function GroupPage() {
   const navigate = useNavigate();
   const [group, setGroup] = useState<Group | null>(null);
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [nextCheckInCursor, setNextCheckInCursor] = useState<string | null>(
+    null,
+  );
+  const [hasMoreCheckIns, setHasMoreCheckIns] = useState(false);
+  const [isLoadingMoreCheckIns, setIsLoadingMoreCheckIns] = useState(false);
+  const [checkInPageError, setCheckInPageError] = useState("");
   const [currentUserCode, setCurrentUserCode] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -88,11 +99,13 @@ export function GroupPage() {
     let active = true;
 
     Promise.all([getCurrentGroup(), getCurrentUser(), getCheckIns()])
-      .then(([currentGroup, currentUser, currentCheckIns]) => {
+      .then(([currentGroup, currentUser, checkInPage]) => {
         if (active) {
           setGroup(currentGroup);
           setCurrentUserCode(currentUser.code);
-          setCheckIns(currentCheckIns);
+          setCheckIns(checkInPage.items);
+          setNextCheckInCursor(checkInPage.nextCursor);
+          setHasMoreCheckIns(checkInPage.hasMore);
         }
       })
       .catch((error: unknown) => {
@@ -117,6 +130,35 @@ export function GroupPage() {
       active = false;
     };
   }, [navigate]);
+
+  const loadMoreCheckIns = useCallback(async () => {
+    if (
+      !hasMoreCheckIns ||
+      !nextCheckInCursor ||
+      isLoadingMoreCheckIns
+    ) {
+      return;
+    }
+
+    setCheckInPageError("");
+    setIsLoadingMoreCheckIns(true);
+    try {
+      const page = await getCheckIns(nextCheckInCursor);
+      setCheckIns((current) => {
+        const existingIds = new Set(current.map((checkIn) => checkIn.id));
+        return [
+          ...current,
+          ...page.items.filter((checkIn) => !existingIds.has(checkIn.id)),
+        ];
+      });
+      setNextCheckInCursor(page.nextCursor);
+      setHasMoreCheckIns(page.hasMore);
+    } catch (error) {
+      setCheckInPageError(getApiErrorMessage(error));
+    } finally {
+      setIsLoadingMoreCheckIns(false);
+    }
+  }, [hasMoreCheckIns, isLoadingMoreCheckIns, nextCheckInCursor]);
 
   async function onSubmit(data: CreateGroupFormData) {
     setSubmitError("");
@@ -191,6 +233,10 @@ export function GroupPage() {
           group={group}
           isAdministrator={group.adminUserCode === currentUserCode}
           checkIns={checkIns}
+          hasMoreCheckIns={hasMoreCheckIns}
+          isLoadingMoreCheckIns={isLoadingMoreCheckIns}
+          checkInPageError={checkInPageError}
+          onLoadMoreCheckIns={() => void loadMoreCheckIns()}
         />
       ) : (
         <CreateGroup
@@ -386,10 +432,18 @@ function CurrentGroup({
   group,
   isAdministrator,
   checkIns,
+  hasMoreCheckIns,
+  isLoadingMoreCheckIns,
+  checkInPageError,
+  onLoadMoreCheckIns,
 }: {
   group: Group;
   isAdministrator: boolean;
   checkIns: CheckIn[];
+  hasMoreCheckIns: boolean;
+  isLoadingMoreCheckIns: boolean;
+  checkInPageError: string;
+  onLoadMoreCheckIns: () => void;
 }) {
   const [inviteLink, setInviteLink] = useState("");
   const [inviteError, setInviteError] = useState("");
@@ -581,6 +635,13 @@ function CurrentGroup({
                 {checkIns.map((checkIn) => (
                   <CheckInCard key={checkIn.id} checkIn={checkIn} />
                 ))}
+                {hasMoreCheckIns && (
+                  <CheckInFeedEnd
+                    isLoading={isLoadingMoreCheckIns}
+                    error={checkInPageError}
+                    onVisible={onLoadMoreCheckIns}
+                  />
+                )}
               </div>
             )}
           </div>
@@ -588,6 +649,54 @@ function CurrentGroup({
       </section>
       <GroupNavigation />
     </>
+  );
+}
+
+function CheckInFeedEnd({
+  isLoading,
+  error,
+  onVisible,
+}: {
+  isLoading: boolean;
+  error: string;
+  onVisible: () => void;
+}) {
+  const elementRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = elementRef.current;
+    if (!element || error) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          onVisible();
+        }
+      },
+      { rootMargin: "240px 0px" },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [error, onVisible]);
+
+  return (
+    <div ref={elementRef} className="py-3 text-center">
+      {error ? (
+        <button
+          type="button"
+          onClick={onVisible}
+          className="text-sm font-extrabold text-brand-700 transition hover:text-brand-800"
+        >
+          Não foi possível carregar mais. Tentar novamente
+        </button>
+      ) : (
+        <p className="text-sm font-bold text-zinc-400">
+          {isLoading ? "Carregando mais check-ins..." : "Carregando..."}
+        </p>
+      )}
+    </div>
   );
 }
 

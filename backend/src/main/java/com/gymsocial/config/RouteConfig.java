@@ -97,6 +97,10 @@ public final class RouteConfig {
         config.routes.get("/check-ins", checkIn.checkInController()::list);
         config.routes.post("/check-ins", checkIn.checkInController()::create);
         config.routes.get(
+            "/check-ins/{checkInId}",
+            checkIn.checkInController()::find
+        );
+        config.routes.get(
             "/check-ins/{checkInId}/comments",
             checkIn.commentController()::list
         );

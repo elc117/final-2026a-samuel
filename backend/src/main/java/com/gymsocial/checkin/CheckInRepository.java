@@ -25,7 +25,7 @@ public final class CheckInRepository {
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
-    private static final String FIND_BY_GROUP_MEMBER = """
+    private static final String FIND_FIRST_PAGE_BY_GROUP_MEMBER = """
         SELECT c.id, c.group_id, c.author_user_id, c.title, c.description,
                c.image_url, c.created_at, u.name AS author_name,
                u.profile_image_url AS author_image_url
@@ -33,7 +33,24 @@ public final class CheckInRepository {
         JOIN users u ON u.id = c.author_user_id
         JOIN group_members viewer ON viewer.group_id = c.group_id
         WHERE viewer.user_id = ?
-        ORDER BY c.created_at DESC
+        ORDER BY c.created_at DESC, c.id DESC
+        LIMIT ?
+        """;
+
+    private static final String FIND_PAGE_BY_GROUP_MEMBER = """
+        SELECT c.id, c.group_id, c.author_user_id, c.title, c.description,
+               c.image_url, c.created_at, u.name AS author_name,
+               u.profile_image_url AS author_image_url
+        FROM check_ins c
+        JOIN users u ON u.id = c.author_user_id
+        JOIN group_members viewer ON viewer.group_id = c.group_id
+        WHERE viewer.user_id = ?
+          AND (
+              c.created_at < ? OR
+              (c.created_at = ? AND c.id < ?)
+          )
+        ORDER BY c.created_at DESC, c.id DESC
+        LIMIT ?
         """;
 
     private static final String FIND_BY_ID = """
@@ -43,6 +60,16 @@ public final class CheckInRepository {
         FROM check_ins c
         JOIN users u ON u.id = c.author_user_id
         WHERE c.id = ?
+        """;
+
+    private static final String FIND_BY_ID_FOR_MEMBER = """
+        SELECT c.id, c.group_id, c.author_user_id, c.title, c.description,
+               c.image_url, c.created_at, u.name AS author_name,
+               u.profile_image_url AS author_image_url
+        FROM check_ins c
+        JOIN users u ON u.id = c.author_user_id
+        JOIN group_members viewer ON viewer.group_id = c.group_id
+        WHERE c.id = ? AND viewer.user_id = ?
         """;
 
     private final DataSource dataSource;
@@ -89,12 +116,28 @@ public final class CheckInRepository {
         }
     }
 
-    public List<CheckInWithAuthor> findByGroupMember(long userId) {
+    public List<CheckInWithAuthor> findPageByGroupMember(
+        long userId,
+        InstantCursor cursor,
+        int limit
+    ) {
+        String query = cursor == null
+            ? FIND_FIRST_PAGE_BY_GROUP_MEMBER
+            : FIND_PAGE_BY_GROUP_MEMBER;
+
         try (
             var connection = dataSource.getConnection();
-            var statement = connection.prepareStatement(FIND_BY_GROUP_MEMBER)
+            var statement = connection.prepareStatement(query)
         ) {
             statement.setLong(1, userId);
+            if (cursor == null) {
+                statement.setInt(2, limit);
+            } else {
+                statement.setTimestamp(2, Timestamp.from(cursor.createdAt()));
+                statement.setTimestamp(3, Timestamp.from(cursor.createdAt()));
+                statement.setObject(4, cursor.id());
+                statement.setInt(5, limit);
+            }
 
             try (var resultSet = statement.executeQuery()) {
                 List<CheckInWithAuthor> checkIns = new ArrayList<>();
@@ -107,6 +150,27 @@ public final class CheckInRepository {
             }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not query check-ins", exception);
+        }
+    }
+
+    public Optional<CheckInWithAuthor> findByIdForMember(
+        UUID checkInId,
+        long userId
+    ) {
+        try (
+            var connection = dataSource.getConnection();
+            var statement = connection.prepareStatement(FIND_BY_ID_FOR_MEMBER)
+        ) {
+            statement.setObject(1, checkInId);
+            statement.setLong(2, userId);
+
+            try (var resultSet = statement.executeQuery()) {
+                return resultSet.next()
+                    ? Optional.of(mapWithAuthor(resultSet))
+                    : Optional.empty();
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Could not query check-in", exception);
         }
     }
 
@@ -150,6 +214,12 @@ public final class CheckInRepository {
         CheckIn checkIn,
         String authorName,
         String authorImageUrl
+    ) {
+    }
+
+    public record InstantCursor(
+        java.time.Instant createdAt,
+        UUID id
     ) {
     }
 }

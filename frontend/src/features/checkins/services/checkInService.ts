@@ -27,19 +27,37 @@ export type CheckInComment = {
   createdAt: string;
 };
 
-export function getCheckIns(): Promise<CheckIn[]> {
-  return apiRequest<CheckIn[]>("/check-ins");
-}
+export type CheckInPage = {
+  items: CheckIn[];
+  nextCursor: string | null;
+  hasMore: boolean;
+};
 
-export async function getCheckIn(checkInId: string): Promise<CheckIn> {
-  const checkIns = await getCheckIns();
-  const checkIn = checkIns.find((current) => current.id === checkInId);
+const pageRequests = new Map<string, Promise<CheckInPage>>();
 
-  if (!checkIn) {
-    throw new Error("Check-in não encontrado.");
+export function getCheckIns(
+  cursor?: string | null,
+  limit = 10,
+): Promise<CheckInPage> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (cursor) {
+    params.set("cursor", cursor);
+  }
+  const path = `/check-ins?${params.toString()}`;
+  const currentRequest = pageRequests.get(path);
+  if (currentRequest) {
+    return currentRequest;
   }
 
-  return checkIn;
+  const request = apiRequest<CheckInPage>(path).finally(() => {
+    pageRequests.delete(path);
+  });
+  pageRequests.set(path, request);
+  return request;
+}
+
+export function getCheckIn(checkInId: string): Promise<CheckIn> {
+  return apiRequest<CheckIn>(`/check-ins/${checkInId}`);
 }
 
 export function createCheckIn(
