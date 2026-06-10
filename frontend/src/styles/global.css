@@ -48,4 +48,29 @@
       linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
     background-size: 44px 44px;
   }
+
+  .brand-scrollbar {
+    scrollbar-color: var(--color-brand-500) #f4f4f5;
+    scrollbar-width: thin;
+  }
+
+  .brand-scrollbar::-webkit-scrollbar {
+    width: 7px;
+  }
+
+  .brand-scrollbar::-webkit-scrollbar-track {
+    margin-block: 12px;
+    background: #f4f4f5;
+    border-radius: 999px;
+  }
+
+  .brand-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-brand-500);
+    border: 2px solid #f4f4f5;
+    border-radius: 999px;
+  }
+
+  .brand-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-brand-700);
+  }
 }

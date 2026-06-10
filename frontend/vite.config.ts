@@ -18,6 +18,11 @@ export default defineConfig({
           });
         },
       },
+      "/socket.io": {
+        target: "http://localhost:7001",
+        changeOrigin: true,
+        ws: true,
+      },
     },
   },
 });

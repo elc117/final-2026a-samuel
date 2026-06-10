@@ -52,6 +52,11 @@ const NotificationsPage = lazy(() =>
     default: module.NotificationsPage,
   })),
 );
+const ChatPage = lazy(() =>
+  import("./features/chat/pages/ChatPage").then((module) => ({
+    default: module.ChatPage,
+  })),
+);
 
 export default function App() {
   return (
@@ -73,6 +78,7 @@ export default function App() {
             path="/grupo/notificacoes"
             element={<NotificationsPage />}
           />
+          <Route path="/grupo/chat" element={<ChatPage />} />
           <Route path="/convite/:token" element={<GroupInvitationPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
           <Route path="/perfil/:userCode" element={<PublicProfilePage />} />

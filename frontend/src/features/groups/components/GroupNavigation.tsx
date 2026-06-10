@@ -1,4 +1,4 @@
-import { Bell, CirclePlus, Trophy } from "lucide-react";
+import { Bell, CirclePlus, MessageCircle, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
@@ -19,6 +19,13 @@ const navigationItems = [
     icon: CirclePlus,
     to: "/grupo/check-in",
     primary: true,
+    notifications: false,
+  },
+  {
+    label: "Chat",
+    icon: MessageCircle,
+    to: "/grupo/chat",
+    primary: false,
     notifications: false,
   },
   {
