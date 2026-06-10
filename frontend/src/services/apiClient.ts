@@ -1,8 +1,4 @@
-import {
-  clearAccessToken,
-  getAccessToken,
-  setAccessToken,
-} from "../features/auth/services/accessTokenStore";
+import { clearAccessToken, getAccessToken, setAccessToken } from "../features/auth/services/accessTokenStore";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "/api";
 const DEFAULT_ERROR_MESSAGE = "Não foi possível concluir a solicitação.";
@@ -31,9 +27,11 @@ export class ApiError extends Error {
 }
 
 function buildHeaders({ body, headers: customHeaders }: RequestInit) {
-  const headers = new Headers(customHeaders);
-  const shouldUseJson = body !== undefined && !(body instanceof FormData);
-  const accessToken = getAccessToken();
+    const headers = new Headers(customHeaders);
+
+    const shouldUseJson = body !== undefined && !(body instanceof FormData);
+
+    const accessToken = getAccessToken();
 
   if (shouldUseJson && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");

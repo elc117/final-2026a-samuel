@@ -76,13 +76,7 @@ public final class AuthController {
         );
     }
 
-    private void addCookie(
-        Context context,
-        String name,
-        String value,
-        String path,
-        long maxAge
-    ) {
+    private void addCookie(Context context, String name, String value, String path, long maxAge) {
         String secureAttribute = cookieSecure ? "; Secure" : "";
 
         context.res().addHeader(

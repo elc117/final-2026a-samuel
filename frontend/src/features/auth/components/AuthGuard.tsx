@@ -6,10 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { restoreSession } from "../../../services/apiClient";
-import {
-  buildAuthPath,
-  getAuthRedirect,
-} from "../services/authRedirect";
+import { buildAuthPath, getAuthRedirect } from "../services/authRedirect";
 
 type AuthGuardProps = {
   mode: "require" | "guest";
