@@ -14,9 +14,22 @@ export type CreateGroupRequest = {
   image?: File;
 };
 
+export type GroupMember = {
+  code: string;
+  name: string;
+  username: string;
+  profileImageUrl: string | null;
+  administrator: boolean;
+  joinedAt: string;
+};
+
 export async function getCurrentGroup(): Promise<Group | null> {
   const group = await apiRequest<Group | undefined>("/groups/me");
   return group ?? null;
+}
+
+export function getCurrentGroupMembers(): Promise<GroupMember[]> {
+  return apiRequest<GroupMember[]>("/groups/me/members");
 }
 
 export function createGroup(

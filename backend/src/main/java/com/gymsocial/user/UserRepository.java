@@ -44,10 +44,6 @@ public final class UserRepository {
                u.profile_image_url, u.status, u.created_at, u.updated_at,
                COUNT(f.id) AS friend_count
         FROM users u
-        JOIN group_members target_member ON target_member.user_id = u.id
-        JOIN group_members viewer_member
-            ON viewer_member.group_id = target_member.group_id
-            AND viewer_member.user_id = ?
         LEFT JOIN friendships f
             ON f.status = 'ACCEPTED'
             AND (
@@ -55,6 +51,31 @@ public final class UserRepository {
                 f.receiver_user_id = u.id
             )
         WHERE u.id = ?
+          AND (
+              EXISTS (
+                  SELECT 1
+                  FROM group_members target_member
+                  JOIN group_members viewer_member
+                    ON viewer_member.group_id = target_member.group_id
+                  WHERE target_member.user_id = u.id
+                    AND viewer_member.user_id = ?
+              )
+              OR EXISTS (
+                  SELECT 1
+                  FROM friendships connection
+                  WHERE connection.status = 'ACCEPTED'
+                    AND (
+                        (
+                            connection.requester_user_id = ?
+                            AND connection.receiver_user_id = u.id
+                        )
+                        OR (
+                            connection.receiver_user_id = ?
+                            AND connection.requester_user_id = u.id
+                        )
+                    )
+              )
+          )
         GROUP BY u.id
         """;
 
@@ -136,8 +157,10 @@ public final class UserRepository {
                 FIND_VISIBLE_PROFILE_BY_ID
             )
         ) {
-            statement.setLong(1, viewerUserId);
-            statement.setLong(2, profileUserId);
+            statement.setLong(1, profileUserId);
+            statement.setLong(2, viewerUserId);
+            statement.setLong(3, viewerUserId);
+            statement.setLong(4, viewerUserId);
 
             try (var resultSet = statement.executeQuery()) {
                 return resultSet.next()

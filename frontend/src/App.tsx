@@ -22,6 +22,11 @@ const GroupInvitationPage = lazy(() =>
     default: module.GroupInvitationPage,
   })),
 );
+const GroupMembersPage = lazy(() =>
+  import("./features/groups/pages/GroupMembersPage").then((module) => ({
+    default: module.GroupMembersPage,
+  })),
+);
 const CreateCheckInPage = lazy(() =>
   import("./features/checkins/pages/CreateCheckInPage").then((module) => ({
     default: module.CreateCheckInPage,
@@ -57,6 +62,11 @@ const ChatPage = lazy(() =>
     default: module.ChatPage,
   })),
 );
+const FriendsPage = lazy(() =>
+  import("./features/friendships/pages/FriendsPage").then((module) => ({
+    default: module.FriendsPage,
+  })),
+);
 
 export default function App() {
   return (
@@ -68,6 +78,10 @@ export default function App() {
         </Route>
         <Route element={<RequireAuth />}>
           <Route path="/grupo" element={<GroupPage />} />
+          <Route
+            path="/grupo/participantes"
+            element={<GroupMembersPage />}
+          />
           <Route path="/grupo/ranking" element={<ChallengePage />} />
           <Route path="/grupo/check-in" element={<CreateCheckInPage />} />
           <Route
@@ -81,6 +95,7 @@ export default function App() {
           <Route path="/grupo/chat" element={<ChatPage />} />
           <Route path="/convite/:token" element={<GroupInvitationPage />} />
           <Route path="/perfil" element={<ProfilePage />} />
+          <Route path="/perfil/amigos" element={<FriendsPage />} />
           <Route path="/perfil/:userCode" element={<PublicProfilePage />} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />

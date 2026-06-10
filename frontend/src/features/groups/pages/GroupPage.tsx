@@ -18,7 +18,6 @@ import {
 import React, {
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { useForm, useWatch } from "react-hook-form";
@@ -45,6 +44,7 @@ import {
   getCheckIns,
   type CheckIn,
 } from "../../checkins/services/checkInService";
+import { useInfiniteScroll } from "../../../shared/pagination/useInfiniteScroll";
 
 const GROUP_IMAGE_OPTIONS = {
   maxWidth: 1200,
@@ -589,10 +589,13 @@ function CurrentGroup({
               {group.name}
             </h1>
             <div className="mt-5 flex flex-wrap gap-3">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold backdrop-blur">
+              <Link
+                to="/grupo/participantes"
+                className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold backdrop-blur transition hover:bg-white/25 focus:outline-none focus:ring-2 focus:ring-white/70"
+              >
                 <Users size={17} />
                 {group.memberCount} de 10 participantes
-              </span>
+              </Link>
               {isAdministrator && (
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-bold backdrop-blur">
                   <ShieldCheck size={17} />
@@ -661,25 +664,10 @@ function CheckInFeedEnd({
   error: string;
   onVisible: () => void;
 }) {
-  const elementRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const element = elementRef.current;
-    if (!element || error) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          onVisible();
-        }
-      },
-      { rootMargin: "240px 0px" },
-    );
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [error, onVisible]);
+  const elementRef = useInfiniteScroll({
+    enabled: !error && !isLoading,
+    onLoad: onVisible,
+  });
 
   return (
     <div ref={elementRef} className="py-3 text-center">

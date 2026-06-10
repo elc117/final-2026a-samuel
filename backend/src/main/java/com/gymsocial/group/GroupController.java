@@ -25,6 +25,12 @@ public final class GroupController {
         );
     }
 
+    public void members(Context context) {
+        context.json(groupService.findCurrentGroupMembers(
+            AuthenticatedUserContext.getUserId(context)
+        ));
+    }
+
     public void create(Context context) throws IOException {
         long userId = AuthenticatedUserContext.getUserId(context);
         var uploadedFile = context.uploadedFile("image");

@@ -1,17 +1,16 @@
 package com.gymsocial.chat;
 
-import com.gymsocial.chat.dto.ChatMessagePageResponse;
 import com.gymsocial.chat.dto.ChatMessageResponse;
 import com.gymsocial.chat.dto.ChatSessionResponse;
 import com.gymsocial.chat.dto.SendChatMessageRequest;
 import com.gymsocial.shared.exception.ForbiddenException;
 import com.gymsocial.shared.exception.ValidationException;
 import com.gymsocial.shared.id.PublicIdCodec;
+import com.gymsocial.shared.pagination.CursorPage;
+import com.gymsocial.shared.pagination.InstantUuidCursorCodec;
 import com.gymsocial.shared.storage.ImageStorage;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,6 +23,7 @@ public final class ChatService {
     private final ChatRepository repository;
     private final ImageStorage imageStorage;
     private final PublicIdCodec publicIdCodec;
+    private final InstantUuidCursorCodec cursorCodec;
 
     public ChatService(
         ChatRepository repository,
@@ -33,6 +33,7 @@ public final class ChatService {
         this.repository = repository;
         this.imageStorage = imageStorage;
         this.publicIdCodec = publicIdCodec;
+        this.cursorCodec = new InstantUuidCursorCodec();
     }
 
     public ChatSessionResponse findSession(long userId) {
@@ -47,7 +48,7 @@ public final class ChatService {
         );
     }
 
-    public ChatMessagePageResponse findMessages(
+    public CursorPage<ChatMessageResponse> findMessages(
         long userId,
         String encodedCursor,
         int pageSize
@@ -59,7 +60,7 @@ public final class ChatService {
             ));
         }
 
-        var cursor = decodeCursor(encodedCursor);
+        var cursor = cursorCodec.decode(encodedCursor);
         List<ChatRepository.ChatMessage> results = repository.findPage(
             userId,
             cursor,
@@ -73,10 +74,13 @@ public final class ChatService {
             .map(this::toResponse)
             .toList();
         String nextCursor = hasMore && !pageResults.isEmpty()
-            ? encodeCursor(pageResults.getLast())
+            ? cursorCodec.encode(
+                pageResults.getLast().createdAt(),
+                pageResults.getLast().id()
+            )
             : null;
 
-        return new ChatMessagePageResponse(items, nextCursor, hasMore);
+        return new CursorPage<>(items, nextCursor, hasMore);
     }
 
     public ChatMessageResponse send(
@@ -140,47 +144,9 @@ public final class ChatService {
         return imageKey == null ? null : imageStorage.createReadUrl(imageKey);
     }
 
-    private String encodeCursor(ChatRepository.ChatMessage message) {
-        String value = "%s|%s".formatted(
-            message.createdAt(),
-            message.id()
-        );
-        return Base64.getUrlEncoder()
-            .withoutPadding()
-            .encodeToString(value.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private ChatRepository.MessageCursor decodeCursor(String encodedCursor) {
-        if (encodedCursor == null || encodedCursor.isBlank()) {
-            return null;
-        }
-
-        try {
-            String value = new String(
-                Base64.getUrlDecoder().decode(encodedCursor),
-                StandardCharsets.UTF_8
-            );
-            int separator = value.lastIndexOf('|');
-            if (separator <= 0 || separator == value.length() - 1) {
-                throw new IllegalArgumentException("Invalid cursor");
-            }
-
-            return new ChatRepository.MessageCursor(
-                Instant.parse(value.substring(0, separator)),
-                UUID.fromString(value.substring(separator + 1))
-            );
-        } catch (IllegalArgumentException exception) {
-            throw new ValidationException(Map.of(
-                "cursor",
-                "Cursor de paginação inválido."
-            ));
-        }
-    }
-
     private ForbiddenException groupRequired() {
         return new ForbiddenException(
             "Você precisa participar de um grupo para acessar o chat."
         );
     }
 }
-

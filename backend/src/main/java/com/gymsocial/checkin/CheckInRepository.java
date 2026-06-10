@@ -1,5 +1,7 @@
 package com.gymsocial.checkin;
 
+import com.gymsocial.shared.pagination.InstantUuidCursor;
+
 import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -118,7 +120,7 @@ public final class CheckInRepository {
 
     public List<CheckInWithAuthor> findPageByGroupMember(
         long userId,
-        InstantCursor cursor,
+        InstantUuidCursor cursor,
         int limit
     ) {
         String query = cursor == null
@@ -217,9 +219,4 @@ public final class CheckInRepository {
     ) {
     }
 
-    public record InstantCursor(
-        java.time.Instant createdAt,
-        UUID id
-    ) {
-    }
 }

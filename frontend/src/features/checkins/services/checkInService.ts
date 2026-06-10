@@ -1,4 +1,5 @@
 import { apiRequest } from "../../../services/apiClient";
+import type { CursorPage } from "../../../shared/pagination/CursorPage";
 
 export type CheckIn = {
   id: string;
@@ -27,11 +28,7 @@ export type CheckInComment = {
   createdAt: string;
 };
 
-export type CheckInPage = {
-  items: CheckIn[];
-  nextCursor: string | null;
-  hasMore: boolean;
-};
+export type CheckInPage = CursorPage<CheckIn>;
 
 const pageRequests = new Map<string, Promise<CheckInPage>>();
 

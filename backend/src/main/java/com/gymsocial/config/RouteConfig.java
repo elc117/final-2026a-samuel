@@ -40,6 +40,7 @@ public final class RouteConfig {
         config.routes.before("/groups", auth.middleware()::authenticate);
         config.routes.before("/groups/*", auth.middleware()::authenticate);
         config.routes.get("/groups/me", groupController::current);
+        config.routes.get("/groups/me/members", groupController::members);
         config.routes.post("/groups", groupController::create);
         config.routes.get(
             "/groups/{groupId}/invite-link",
@@ -73,6 +74,7 @@ public final class RouteConfig {
             "/friendships/*",
             auth.middleware()::authenticate
         );
+        config.routes.get("/friendships", friendshipController::list);
         config.routes.get(
             "/friendships/requests",
             friendshipController::incoming

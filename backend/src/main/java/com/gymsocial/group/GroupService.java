@@ -2,6 +2,7 @@ package com.gymsocial.group;
 
 import com.gymsocial.group.dto.CreateGroupRequest;
 import com.gymsocial.group.dto.GroupResponse;
+import com.gymsocial.group.dto.GroupMemberResponse;
 import com.gymsocial.shared.exception.ConflictException;
 import com.gymsocial.shared.storage.ImageFileValidator;
 import com.gymsocial.shared.storage.ImageStorage;
@@ -10,6 +11,7 @@ import com.gymsocial.shared.validation.RequestValidator;
 import com.gymsocial.shared.id.PublicIdCodec;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 public final class GroupService {
@@ -42,6 +44,21 @@ public final class GroupService {
                 result.group(),
                 result.memberCount()
             ));
+    }
+
+    public List<GroupMemberResponse> findCurrentGroupMembers(long userId) {
+        return groupRepository.findMembersByGroupMember(userId).stream()
+            .map(member -> new GroupMemberResponse(
+                publicIdCodec.encode(member.userId()),
+                member.name(),
+                member.username(),
+                member.profileImageKey() == null
+                    ? null
+                    : imageStorage.createReadUrl(member.profileImageKey()),
+                member.administrator(),
+                member.joinedAt()
+            ))
+            .toList();
     }
 
     public GroupResponse create(

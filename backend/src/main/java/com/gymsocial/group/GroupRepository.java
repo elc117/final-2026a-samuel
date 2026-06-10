@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -21,6 +23,20 @@ public final class GroupRepository {
         JOIN group_members gm_all ON gm_all.group_id = g.id
         WHERE gm_user.user_id = ?
         GROUP BY g.id
+        """;
+
+    private static final String FIND_MEMBERS_BY_GROUP_MEMBER = """
+        SELECT member.user_id, member.joined_at, user_account.name,
+               user_account.username, user_account.profile_image_url,
+               (group_account.admin_user_id = member.user_id)
+                   AS administrator
+        FROM group_members viewer
+        JOIN group_members member ON member.group_id = viewer.group_id
+        JOIN groups group_account ON group_account.id = member.group_id
+        JOIN users user_account ON user_account.id = member.user_id
+        WHERE viewer.user_id = ?
+        ORDER BY administrator DESC, member.joined_at, member.user_id
+        LIMIT 10
         """;
 
     private static final String INSERT_GROUP = """
@@ -62,6 +78,37 @@ public final class GroupRepository {
             }
         } catch (SQLException exception) {
             throw new IllegalStateException("Could not query group", exception);
+        }
+    }
+
+    public List<GroupMember> findMembersByGroupMember(long userId) {
+        try (
+            var connection = dataSource.getConnection();
+            var statement = connection.prepareStatement(
+                FIND_MEMBERS_BY_GROUP_MEMBER
+            )
+        ) {
+            statement.setLong(1, userId);
+
+            try (var resultSet = statement.executeQuery()) {
+                List<GroupMember> members = new ArrayList<>();
+                while (resultSet.next()) {
+                    members.add(new GroupMember(
+                        resultSet.getLong("user_id"),
+                        resultSet.getString("name"),
+                        resultSet.getString("username"),
+                        resultSet.getString("profile_image_url"),
+                        resultSet.getBoolean("administrator"),
+                        resultSet.getTimestamp("joined_at").toInstant()
+                    ));
+                }
+                return members;
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException(
+                "Could not query group members",
+                exception
+            );
         }
     }
 
@@ -157,5 +204,15 @@ public final class GroupRepository {
     }
 
     public record GroupWithMemberCount(Group group, int memberCount) {
+    }
+
+    public record GroupMember(
+        long userId,
+        String name,
+        String username,
+        String profileImageKey,
+        boolean administrator,
+        Instant joinedAt
+    ) {
     }
 }

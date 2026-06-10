@@ -1,5 +1,7 @@
 package com.gymsocial.chat;
 
+import com.gymsocial.shared.pagination.InstantUuidCursor;
+
 import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -151,7 +153,7 @@ public final class ChatRepository {
 
     public List<ChatMessage> findPage(
         long userId,
-        MessageCursor cursor,
+        InstantUuidCursor cursor,
         int limit
     ) {
         String query = cursor == null ? FIND_FIRST_PAGE : FIND_PAGE;
@@ -216,7 +218,4 @@ public final class ChatRepository {
     ) {
     }
 
-    public record MessageCursor(Instant createdAt, UUID id) {
-    }
 }
-

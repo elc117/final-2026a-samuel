@@ -1,6 +1,7 @@
 import { io, type Socket } from "socket.io-client";
 import { apiRequest } from "../../../services/apiClient";
 import { getAccessToken } from "../../auth/services/accessTokenStore";
+import type { CursorPage } from "../../../shared/pagination/CursorPage";
 
 export type ChatSession = {
   groupId: string;
@@ -19,11 +20,7 @@ export type ChatMessage = {
   createdAt: string;
 };
 
-export type ChatMessagePage = {
-  items: ChatMessage[];
-  nextCursor: string | null;
-  hasMore: boolean;
-};
+export type ChatMessagePage = CursorPage<ChatMessage>;
 
 type SendMessageResult = {
   ok: boolean;

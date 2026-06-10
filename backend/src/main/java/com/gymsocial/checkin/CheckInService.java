@@ -1,7 +1,6 @@
 package com.gymsocial.checkin;
 
 import com.gymsocial.checkin.dto.CheckInResponse;
-import com.gymsocial.checkin.dto.CheckInPageResponse;
 import com.gymsocial.checkin.dto.CreateCheckInRequest;
 import com.gymsocial.shared.exception.ForbiddenException;
 import com.gymsocial.shared.exception.NotFoundException;
@@ -11,10 +10,10 @@ import com.gymsocial.shared.storage.ImageStorage;
 import com.gymsocial.shared.storage.ImageUpload;
 import com.gymsocial.shared.validation.RequestValidator;
 import com.gymsocial.shared.id.PublicIdCodec;
+import com.gymsocial.shared.pagination.CursorPage;
+import com.gymsocial.shared.pagination.InstantUuidCursorCodec;
 
 import java.time.Instant;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,6 +28,7 @@ public final class CheckInService {
     private final ImageFileValidator imageFileValidator;
     private final ImageStorage imageStorage;
     private final PublicIdCodec publicIdCodec;
+    private final InstantUuidCursorCodec cursorCodec;
 
     public CheckInService(
         CheckInRepository repository,
@@ -42,6 +42,7 @@ public final class CheckInService {
         this.imageFileValidator = imageFileValidator;
         this.imageStorage = imageStorage;
         this.publicIdCodec = publicIdCodec;
+        this.cursorCodec = new InstantUuidCursorCodec();
     }
 
     public CheckInResponse create(
@@ -93,7 +94,7 @@ public final class CheckInService {
         );
     }
 
-    public CheckInPageResponse findCurrentGroupCheckIns(
+    public CursorPage<CheckInResponse> findCurrentGroupCheckIns(
         long userId,
         String encodedCursor,
         int pageSize
@@ -105,7 +106,7 @@ public final class CheckInService {
             ));
         }
 
-        CheckInRepository.InstantCursor cursor = decodeCursor(encodedCursor);
+        var cursor = cursorCodec.decode(encodedCursor);
         List<CheckInRepository.CheckInWithAuthor> results =
             repository.findPageByGroupMember(
                 userId,
@@ -124,10 +125,13 @@ public final class CheckInService {
             ))
             .toList();
         String nextCursor = hasMore && !pageResults.isEmpty()
-            ? encodeCursor(pageResults.getLast().checkIn())
+            ? cursorCodec.encode(
+                pageResults.getLast().checkIn().createdAt(),
+                pageResults.getLast().checkIn().id()
+            )
             : null;
 
-        return new CheckInPageResponse(items, nextCursor, hasMore);
+        return new CursorPage<>(items, nextCursor, hasMore);
     }
 
     public CheckInResponse findCheckIn(long userId, UUID checkInId) {
@@ -184,45 +188,6 @@ public final class CheckInService {
             authorImageUrl,
             imageUrl
         );
-    }
-
-    private String encodeCursor(CheckIn checkIn) {
-        String value = "%s|%s".formatted(
-            checkIn.createdAt(),
-            checkIn.id()
-        );
-        return Base64.getUrlEncoder()
-            .withoutPadding()
-            .encodeToString(value.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private CheckInRepository.InstantCursor decodeCursor(
-        String encodedCursor
-    ) {
-        if (encodedCursor == null || encodedCursor.isBlank()) {
-            return null;
-        }
-
-        try {
-            String value = new String(
-                Base64.getUrlDecoder().decode(encodedCursor),
-                StandardCharsets.UTF_8
-            );
-            int separator = value.lastIndexOf('|');
-            if (separator <= 0 || separator == value.length() - 1) {
-                throw new IllegalArgumentException("Invalid cursor");
-            }
-
-            return new CheckInRepository.InstantCursor(
-                Instant.parse(value.substring(0, separator)),
-                UUID.fromString(value.substring(separator + 1))
-            );
-        } catch (IllegalArgumentException exception) {
-            throw new ValidationException(Map.of(
-                "cursor",
-                "Cursor de paginação inválido."
-            ));
-        }
     }
 
     private void deleteQuietly(String imageKey, RuntimeException exception) {

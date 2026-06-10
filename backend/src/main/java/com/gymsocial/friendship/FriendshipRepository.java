@@ -1,5 +1,7 @@
 package com.gymsocial.friendship;
 
+import com.gymsocial.shared.pagination.InstantUuidCursor;
+
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -109,6 +111,58 @@ public final class FriendshipRepository {
         FROM friendships
         WHERE receiver_user_id = ?
           AND status = 'PENDING'
+        """;
+
+    private static final String FIND_FIRST_FRIENDS_PAGE = """
+        SELECT friendship.id,
+               CASE
+                   WHEN friendship.requester_user_id = ?
+                   THEN friendship.receiver_user_id
+                   ELSE friendship.requester_user_id
+               END AS friend_user_id,
+               friend.name, friend.username, friend.profile_image_url,
+               friendship.updated_at AS connected_at
+        FROM friendships friendship
+        JOIN users friend ON friend.id = CASE
+            WHEN friendship.requester_user_id = ?
+            THEN friendship.receiver_user_id
+            ELSE friendship.requester_user_id
+        END
+        WHERE friendship.status = 'ACCEPTED'
+          AND (
+              friendship.requester_user_id = ? OR
+              friendship.receiver_user_id = ?
+          )
+        ORDER BY friendship.updated_at DESC, friendship.id DESC
+        LIMIT ?
+        """;
+
+    private static final String FIND_FRIENDS_PAGE = """
+        SELECT friendship.id,
+               CASE
+                   WHEN friendship.requester_user_id = ?
+                   THEN friendship.receiver_user_id
+                   ELSE friendship.requester_user_id
+               END AS friend_user_id,
+               friend.name, friend.username, friend.profile_image_url,
+               friendship.updated_at AS connected_at
+        FROM friendships friendship
+        JOIN users friend ON friend.id = CASE
+            WHEN friendship.requester_user_id = ?
+            THEN friendship.receiver_user_id
+            ELSE friendship.requester_user_id
+        END
+        WHERE friendship.status = 'ACCEPTED'
+          AND (
+              friendship.requester_user_id = ? OR
+              friendship.receiver_user_id = ?
+          )
+          AND (
+              friendship.updated_at < ? OR
+              (friendship.updated_at = ? AND friendship.id < ?)
+          )
+        ORDER BY friendship.updated_at DESC, friendship.id DESC
+        LIMIT ?
         """;
 
     private final DataSource dataSource;
@@ -323,6 +377,54 @@ public final class FriendshipRepository {
         }
     }
 
+    public List<FriendConnection> findFriendsPage(
+        long userId,
+        InstantUuidCursor cursor,
+        int limit
+    ) {
+        String query = cursor == null
+            ? FIND_FIRST_FRIENDS_PAGE
+            : FIND_FRIENDS_PAGE;
+
+        try (
+            var connection = dataSource.getConnection();
+            var statement = connection.prepareStatement(query)
+        ) {
+            statement.setLong(1, userId);
+            statement.setLong(2, userId);
+            statement.setLong(3, userId);
+            statement.setLong(4, userId);
+            if (cursor == null) {
+                statement.setInt(5, limit);
+            } else {
+                statement.setTimestamp(5, Timestamp.from(cursor.createdAt()));
+                statement.setTimestamp(6, Timestamp.from(cursor.createdAt()));
+                statement.setObject(7, cursor.id());
+                statement.setInt(8, limit);
+            }
+
+            try (var resultSet = statement.executeQuery()) {
+                List<FriendConnection> friends = new ArrayList<>();
+                while (resultSet.next()) {
+                    friends.add(new FriendConnection(
+                        resultSet.getObject("id", UUID.class),
+                        resultSet.getLong("friend_user_id"),
+                        resultSet.getString("name"),
+                        resultSet.getString("username"),
+                        resultSet.getString("profile_image_url"),
+                        resultSet.getTimestamp("connected_at").toInstant()
+                    ));
+                }
+                return friends;
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException(
+                "Could not list friends",
+                exception
+            );
+        }
+    }
+
     public Relationship findRelationship(long viewerUserId, long targetUserId) {
         if (viewerUserId == targetUserId) {
             return Relationship.SELF;
@@ -519,6 +621,16 @@ public final class FriendshipRepository {
         String requesterUsername,
         String requesterImageKey,
         Instant createdAt
+    ) {
+    }
+
+    public record FriendConnection(
+        UUID friendshipId,
+        long userId,
+        String name,
+        String username,
+        String profileImageKey,
+        Instant connectedAt
     ) {
     }
 

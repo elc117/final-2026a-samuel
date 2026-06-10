@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
 import {
   ApiError,
@@ -211,7 +211,10 @@ export function ProfilePage() {
                   </div>
                 </div>
 
-                <div className="flex min-w-40 items-center gap-3 rounded-2xl bg-brand-50 px-5 py-4 text-brand-700">
+                <Link
+                  to="/perfil/amigos"
+                  className="flex min-w-40 items-center gap-3 rounded-2xl bg-brand-50 px-5 py-4 text-brand-700 transition hover:bg-brand-100"
+                >
                   <Users size={24} />
                   <div>
                     <strong className="block text-2xl font-black leading-none">
@@ -221,7 +224,7 @@ export function ProfilePage() {
                       {profile.friendCount === 1 ? "amigo" : "amigos"}
                     </span>
                   </div>
-                </div>
+                </Link>
               </div>
 
               <div className="mt-10 grid gap-8 lg:grid-cols-[1fr_0.72fr]">
