@@ -5,6 +5,7 @@ import com.gymsocial.auth.dto.RegisterRequest;
 import com.gymsocial.shared.http.AuthenticatedUserContext;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+import io.javalin.http.Cookie;
 
 public final class AuthController {
 
@@ -69,15 +70,16 @@ public final class AuthController {
     }
 
     private void addRefreshTokenCookie(Context context, String value, long maxAge) {
-        String secureAttribute = cookieSecure ? "; Secure" : "";
-
-        context.res().addHeader(
-                "Set-Cookie",
-                RefreshTokenService.REFRESH_TOKEN_COOKIE + "=" + value +
-                        "; Path=/" +
-                        "; Max-Age=" + maxAge +
-                        "; HttpOnly; SameSite=Lax" +
-                        secureAttribute
+        Cookie cookie = new Cookie(
+                RefreshTokenService.REFRESH_TOKEN_COOKIE,
+                value,
+                "/",
+                (int) maxAge,
+                cookieSecure,
+                true,
+                "Lax"
         );
+
+        context.cookie(cookie);
     }
 }
