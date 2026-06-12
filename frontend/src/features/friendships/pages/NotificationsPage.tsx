@@ -3,10 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthenticatedHeader } from "../../auth/components/AuthenticatedHeader";
 import { GroupNavigation } from "../../groups/components/GroupNavigation";
-import {
-  ApiError,
-  getApiErrorMessage,
-} from "../../../services/apiClient";
+import { ApiError, getApiErrorMessage } from "../../../services/apiClient";
 import {
   acceptFriendshipRequest,
   getFriendshipRequests,
@@ -21,6 +18,7 @@ export function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [processingId, setProcessingId] = useState("");
+  const friendshipActions = { accept: acceptFriendshipRequest,  reject: rejectFriendshipRequest };
 
   useEffect(() => {
     let active = true;
@@ -41,29 +39,26 @@ export function NotificationsPage() {
     };
   }, [navigate]);
 
-  async function handleRequest(
-    requestId: string,
-    action: "accept" | "reject",
-  ) {
-    setError("");
-    setProcessingId(requestId);
+    async function handleRequest(requestId: string, action: "accept" | "reject") {
+        setError("");
+        setProcessingId(requestId);
 
-    try {
-      if (action === "accept") {
-        await acceptFriendshipRequest(requestId);
-      } else {
-        await rejectFriendshipRequest(requestId);
-      }
-      setRequests((current) =>
-        current.filter((request) => request.id !== requestId),
-      );
-      notifyFriendshipRequestsChanged();
-    } catch (requestError) {
-      setError(getApiErrorMessage(requestError));
-    } finally {
-      setProcessingId("");
+        try {
+            await friendshipActions[action](requestId);
+
+            setRequests((current) =>
+                current.filter((request) => request.id !== requestId),
+            );
+
+            notifyFriendshipRequestsChanged();
+        }
+        catch (requestError) {
+            setError(getApiErrorMessage(requestError));
+        }
+        finally {
+            setProcessingId("");
+        }
     }
-  }
 
   return (
     <main className="min-h-screen bg-zinc-50">

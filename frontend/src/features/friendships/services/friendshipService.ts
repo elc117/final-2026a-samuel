@@ -37,17 +37,14 @@ export function getFriendshipRequests(): Promise<FriendshipRequest[]> {
   return apiRequest<FriendshipRequest[]>("/friendships/requests");
 }
 
-export function getFriends(
-  cursor?: string | null,
-  limit = 20,
-): Promise<CursorPage<Friend>> {
+export function getFriends(cursor?: string | null, limit = 20,): Promise<CursorPage<Friend>> {
   const params = new URLSearchParams({ limit: String(limit) });
+
   if (cursor) {
     params.set("cursor", cursor);
   }
-  return apiRequest<CursorPage<Friend>>(
-    `/friendships?${params.toString()}`,
-  );
+
+  return apiRequest<CursorPage<Friend>>(`/friendships?${params.toString()}`);
 }
 
 export function getFriendshipRequestCount(force = false): Promise<number> {

@@ -31,7 +31,10 @@ export function FriendsPage() {
 
     Promise.all([getProfile(), getFriends()])
       .then(([loadedProfile, page]) => {
-        if (!active) return;
+        if (!active){
+            return;
+        }
+
         setProfile(loadedProfile);
         setFriends(page.items);
         setNextCursor(page.nextCursor);
@@ -52,10 +55,13 @@ export function FriendsPage() {
   }, [navigate]);
 
   const loadMore = useCallback(async () => {
-    if (!nextCursor || !hasMore || loadingMore) return;
+    if (!nextCursor || !hasMore || loadingMore) {
+        return;
+    }
 
     setLoadingMore(true);
     setError("");
+
     try {
       const page = await getFriends(nextCursor);
       setFriends((current) => {
@@ -67,9 +73,11 @@ export function FriendsPage() {
       });
       setNextCursor(page.nextCursor);
       setHasMore(page.hasMore);
-    } catch (requestError) {
+    }
+    catch (requestError) {
       setError(getApiErrorMessage(requestError));
-    } finally {
+    }
+    finally {
       setLoadingMore(false);
     }
   }, [hasMore, loadingMore, nextCursor]);
