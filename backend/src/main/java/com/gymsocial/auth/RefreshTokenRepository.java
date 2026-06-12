@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.OptionalLong;
 import java.util.UUID;
 
+
 public final class RefreshTokenRepository {
 
     private static final String INSERT = """
@@ -83,7 +84,8 @@ public final class RefreshTokenRepository {
                 now,
                 replacementExpiresAt
             );
-        } catch (SQLException exception) {
+        }
+        catch (SQLException exception) {
             throw new IllegalStateException(
                 "Could not rotate refresh token session",
                 exception
@@ -99,7 +101,8 @@ public final class RefreshTokenRepository {
             statement.setTimestamp(1, Timestamp.from(revokedAt));
             statement.setString(2, tokenHash);
             statement.executeUpdate();
-        } catch (SQLException exception) {
+        }
+        catch (SQLException exception) {
             throw new IllegalStateException(
                 "Could not revoke refresh token session",
                 exception
@@ -141,10 +144,12 @@ public final class RefreshTokenRepository {
             );
             connection.commit();
             return userId;
-        } catch (SQLException exception) {
+        }
+        catch (SQLException exception) {
             connection.rollback();
             throw exception;
-        } finally {
+        }
+        finally {
             connection.setAutoCommit(originalAutoCommit);
         }
     }

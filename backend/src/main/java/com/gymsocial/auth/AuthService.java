@@ -131,10 +131,7 @@ public final class AuthService {
             return;
         }
 
-        refreshTokenRepository.revoke(
-            refreshTokenService.hash(refreshToken),
-            Instant.now()
-        );
+        refreshTokenRepository.revoke(refreshTokenService.hash(refreshToken), Instant.now());
     }
 
     public UserResponse currentUser(long userId) {

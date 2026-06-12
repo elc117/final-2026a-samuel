@@ -57,35 +57,27 @@ public final class AuthController {
     }
 
     private void setRefreshTokenCookie(Context context, String refreshToken) {
-        addCookie(
-            context,
-            RefreshTokenService.REFRESH_TOKEN_COOKIE,
-            refreshToken,
-            "/",
-            RefreshTokenService.REFRESH_TOKEN_DURATION.toSeconds()
+        addRefreshTokenCookie(
+                context,
+                refreshToken,
+                RefreshTokenService.REFRESH_TOKEN_DURATION.toSeconds()
         );
     }
 
     private void clearRefreshTokenCookie(Context context) {
-        addCookie(
-            context,
-            RefreshTokenService.REFRESH_TOKEN_COOKIE,
-            "",
-            "/",
-            0
-        );
+        addRefreshTokenCookie(context, "", 0);
     }
 
-    private void addCookie(Context context, String name, String value, String path, long maxAge) {
+    private void addRefreshTokenCookie(Context context, String value, long maxAge) {
         String secureAttribute = cookieSecure ? "; Secure" : "";
 
         context.res().addHeader(
-            "Set-Cookie",
-            name + "=" + value +
-                "; Path=" + path +
-                "; Max-Age=" + maxAge +
-                "; HttpOnly; SameSite=Lax" +
-                secureAttribute
+                "Set-Cookie",
+                RefreshTokenService.REFRESH_TOKEN_COOKIE + "=" + value +
+                        "; Path=/" +
+                        "; Max-Age=" + maxAge +
+                        "; HttpOnly; SameSite=Lax" +
+                        secureAttribute
         );
     }
 }

@@ -75,7 +75,8 @@ public final class CheckInCommentController {
     private UUID parseId(Context context) {
         try {
             return UUID.fromString(context.pathParam("checkInId"));
-        } catch (IllegalArgumentException exception) {
+        }
+        catch (IllegalArgumentException exception) {
             throw new NotFoundException("Check-in não encontrado.");
         }
     }

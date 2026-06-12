@@ -11,11 +11,7 @@ public record UserResponse(
     String createdAt
 ) {
 
-    public static UserResponse from(
-        User user,
-        String code,
-        String profileImageUrl
-    ) {
+    public static UserResponse from(User user, String code, String profileImageUrl) {
         return new UserResponse(
             code,
             user.name(),

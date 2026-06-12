@@ -32,7 +32,8 @@ public final class RefreshTokenService {
             );
 
             return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException exception) {
+        }
+        catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException(
                 "SHA-256 algorithm is unavailable",
                 exception

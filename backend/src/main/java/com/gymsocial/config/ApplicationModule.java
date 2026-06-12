@@ -19,12 +19,12 @@ public final class ApplicationModule {
             imageStorage,
             publicIdCodec
         );
-        var groupController = GroupModule.create(
+        var group = GroupModule.create(
             dataSource,
             imageStorage,
             publicIdCodec
         );
-        var groupInvitationController = GroupInvitationModule.create(
+        var groupInvitation = GroupInvitationModule.create(
             dataSource,
             imageStorage
         );
@@ -33,7 +33,7 @@ public final class ApplicationModule {
             imageStorage,
             publicIdCodec
         );
-        var userProfileController = UserProfileModule.create(
+        var userProfile = UserProfileModule.create(
             dataSource,
             imageStorage,
             publicIdCodec,
@@ -44,12 +44,12 @@ public final class ApplicationModule {
             imageStorage,
             publicIdCodec
         );
-        var challengeController = ChallengeModule.create(
+        var challenge = ChallengeModule.create(
             dataSource,
             imageStorage,
             publicIdCodec
         );
-        var chatController = ChatModule.create(
+        var chat = ChatModule.create(
             dataSource,
             imageStorage,
             publicIdCodec
@@ -59,13 +59,13 @@ public final class ApplicationModule {
             appConfig,
             dataSource,
             auth,
-            groupController,
-            groupInvitationController,
-            userProfileController,
+            group,
+            groupInvitation,
+            userProfile,
             friendship.controller(),
             checkIn,
-            challengeController,
-            chatController
+            challenge,
+            chat
         );
     }
 }

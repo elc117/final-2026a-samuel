@@ -4,7 +4,7 @@ import org.hashids.Hashids;
 
 import java.util.OptionalLong;
 
-public final class PublicIdCodec {
+public class PublicIdCodec {
 
     private static final int MINIMUM_CODE_LENGTH = 10;
 
