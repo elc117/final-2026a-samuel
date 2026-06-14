@@ -1,6 +1,6 @@
 package com.gymsocial.user;
 
-import com.gymsocial.friendship.FriendshipRepository;
+import com.gymsocial.friendship.port.FriendshipRelationshipRepository;
 import com.gymsocial.friendship.enums.Relationship;
 import com.gymsocial.shared.exception.NotFoundException;
 import com.gymsocial.shared.exception.UnauthorizedException;
@@ -21,7 +21,7 @@ public final class UserProfileService {
     private final ImageFileValidator imageFileValidator;
     private final ImageStorage imageStorage;
     private final PublicIdCodec publicIdCodec;
-    private final FriendshipRepository friendshipRepository;
+    private final FriendshipRelationshipRepository relationshipRepository;
 
     public UserProfileService(
         UserRepository userRepository,
@@ -29,14 +29,14 @@ public final class UserProfileService {
         ImageFileValidator imageFileValidator,
         ImageStorage imageStorage,
         PublicIdCodec publicIdCodec,
-        FriendshipRepository friendshipRepository
+        FriendshipRelationshipRepository relationshipRepository
     ) {
         this.userRepository = userRepository;
         this.requestValidator = requestValidator;
         this.imageFileValidator = imageFileValidator;
         this.imageStorage = imageStorage;
         this.publicIdCodec = publicIdCodec;
-        this.friendshipRepository = friendshipRepository;
+        this.relationshipRepository = relationshipRepository;
     }
 
     public UserProfileResponse findByUserId(long userId) {
@@ -65,7 +65,7 @@ public final class UserProfileService {
 
         return toResponse(
             profile,
-            friendshipRepository.findRelationship(
+            relationshipRepository.findRelationship(
                 viewerUserId,
                 profileUserId
             )

@@ -1,9 +1,12 @@
 package com.gymsocial.config;
 
 import com.gymsocial.friendship.FriendshipController;
-import com.gymsocial.friendship.FriendshipRepository;
+import com.gymsocial.friendship.FriendshipResponseMapper;
 import com.gymsocial.friendship.FriendshipService;
+import com.gymsocial.friendship.database.FriendshipCommandRepository;
+import com.gymsocial.friendship.database.FriendshipQueryRepository;
 import com.gymsocial.friendship.database.JdbcTransactionManager;
+import com.gymsocial.friendship.port.FriendshipRelationshipRepository;
 import com.gymsocial.shared.id.PublicIdCodec;
 import com.gymsocial.shared.storage.ImageStorage;
 
@@ -19,21 +22,26 @@ public final class FriendshipModule {
         ImageStorage imageStorage,
         PublicIdCodec publicIdCodec
     ) {
-        var repository = new FriendshipRepository(dataSource,  new JdbcTransactionManager(dataSource));
+        var commandRepository = new FriendshipCommandRepository(
+            dataSource,
+            new JdbcTransactionManager(dataSource)
+        );
+        var queryRepository = new FriendshipQueryRepository(dataSource);
         var service = new FriendshipService(
-            repository,
-            publicIdCodec,
-            imageStorage
+            commandRepository,
+            queryRepository,
+            new FriendshipResponseMapper(publicIdCodec, imageStorage),
+            publicIdCodec
         );
         return new Components(
             new FriendshipController(service),
-            repository
+            queryRepository
         );
     }
 
     public record Components(
         FriendshipController controller,
-        FriendshipRepository repository
+        FriendshipRelationshipRepository relationshipRepository
     ) {
     }
 }

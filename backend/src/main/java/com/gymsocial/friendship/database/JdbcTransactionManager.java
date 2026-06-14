@@ -2,13 +2,10 @@ package com.gymsocial.friendship.database;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
-
-import java.sql.Connection;
 import java.sql.SQLException;
-import javax.sql.DataSource;
 
+public final class JdbcTransactionManager {
 
-public class JdbcTransactionManager {
     private final DataSource dataSource;
 
     public JdbcTransactionManager(DataSource dataSource) {
@@ -23,7 +20,6 @@ public class JdbcTransactionManager {
             try {
                 T result = callback.execute(connection);
                 connection.commit();
-
                 return result;
             }
             catch (RuntimeException | SQLException exception) {
@@ -36,8 +32,8 @@ public class JdbcTransactionManager {
         }
         catch (SQLException exception) {
             throw new IllegalStateException(
-                    "Database transaction failed",
-                    exception
+                "Database transaction failed",
+                exception
             );
         }
     }

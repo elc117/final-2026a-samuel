@@ -9,7 +9,9 @@ import io.javalin.http.HttpStatus;
 import java.util.Map;
 import java.util.UUID;
 
-public class FriendshipController {
+public final class FriendshipController {
+
+    private static final int DEFAULT_PAGE_SIZE = 20;
 
     private final FriendshipService service;
 
@@ -50,7 +52,7 @@ public class FriendshipController {
     public void accept(Context context) {
         service.accept(
             AuthenticatedUserContext.getUserId(context),
-            parseId(context)
+            parseFriendshipId(context)
         );
         context.status(HttpStatus.NO_CONTENT);
     }
@@ -58,12 +60,12 @@ public class FriendshipController {
     public void reject(Context context) {
         service.reject(
             AuthenticatedUserContext.getUserId(context),
-            parseId(context)
+            parseFriendshipId(context)
         );
         context.status(HttpStatus.NO_CONTENT);
     }
 
-    private UUID parseId(Context context) {
+    private UUID parseFriendshipId(Context context) {
         try {
             return UUID.fromString(context.pathParam("friendshipId"));
         }
@@ -77,7 +79,7 @@ public class FriendshipController {
     private int parseLimit(Context context) {
         String value = context.queryParam("limit");
         if (value == null || value.isBlank()) {
-            return 20;
+            return DEFAULT_PAGE_SIZE;
         }
 
         try {

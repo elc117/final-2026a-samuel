@@ -4,7 +4,7 @@ import com.gymsocial.shared.storage.ImageFileValidator;
 import com.gymsocial.shared.storage.ImageStorage;
 import com.gymsocial.shared.validation.RequestValidator;
 import com.gymsocial.shared.id.PublicIdCodec;
-import com.gymsocial.friendship.FriendshipRepository;
+import com.gymsocial.friendship.port.FriendshipRelationshipRepository;
 import com.gymsocial.user.UserProfileController;
 import com.gymsocial.user.UserProfileService;
 import com.gymsocial.user.UserRepository;
@@ -20,7 +20,7 @@ public final class UserProfileModule {
         DataSource dataSource,
         ImageStorage imageStorage,
         PublicIdCodec publicIdCodec,
-        FriendshipRepository friendshipRepository
+        FriendshipRelationshipRepository relationshipRepository
     ) {
         var service = new UserProfileService(
             new UserRepository(dataSource),
@@ -28,7 +28,7 @@ public final class UserProfileModule {
             new ImageFileValidator(),
             imageStorage,
             publicIdCodec,
-            friendshipRepository
+            relationshipRepository
         );
 
         return new UserProfileController(service);

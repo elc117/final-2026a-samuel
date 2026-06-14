@@ -37,7 +37,7 @@ public final class ApplicationModule {
             dataSource,
             imageStorage,
             publicIdCodec,
-            friendship.repository()
+            friendship.relationshipRepository()
         );
         var checkIn = CheckInModule.create(
             dataSource,
