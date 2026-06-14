@@ -3,6 +3,7 @@ package com.gymsocial.config;
 import com.gymsocial.friendship.FriendshipController;
 import com.gymsocial.friendship.FriendshipRepository;
 import com.gymsocial.friendship.FriendshipService;
+import com.gymsocial.friendship.database.JdbcTransactionManager;
 import com.gymsocial.shared.id.PublicIdCodec;
 import com.gymsocial.shared.storage.ImageStorage;
 
@@ -18,7 +19,7 @@ public final class FriendshipModule {
         ImageStorage imageStorage,
         PublicIdCodec publicIdCodec
     ) {
-        var repository = new FriendshipRepository(dataSource);
+        var repository = new FriendshipRepository(dataSource,  new JdbcTransactionManager(dataSource));
         var service = new FriendshipService(
             repository,
             publicIdCodec,

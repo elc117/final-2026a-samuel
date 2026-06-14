@@ -1,6 +1,7 @@
 package com.gymsocial.user;
 
 import com.gymsocial.friendship.FriendshipRepository;
+import com.gymsocial.friendship.enums.Relationship;
 import com.gymsocial.shared.exception.NotFoundException;
 import com.gymsocial.shared.exception.UnauthorizedException;
 import com.gymsocial.shared.storage.ImageFileValidator;
@@ -45,7 +46,7 @@ public final class UserProfileService {
                 "Usuário autenticado não encontrado."
             ));
 
-        return toResponse(profile, FriendshipRepository.Relationship.SELF);
+        return toResponse(profile, Relationship.SELF);
     }
 
     public UserProfileResponse findVisibleProfile(
@@ -71,8 +72,13 @@ public final class UserProfileService {
         );
     }
 
-    public UserProfileResponse update(long userId, UpdateProfileRequest request, ImageUpload image) {
+    public UserProfileResponse update(
+            long userId,
+            UpdateProfileRequest request,
+            ImageUpload image
+    ) {
         requestValidator.validate(request);
+
         UserRepository.UserProfile currentProfile = userRepository
             .findProfileById(userId)
             .orElseThrow(() -> new UnauthorizedException(
@@ -112,7 +118,7 @@ public final class UserProfileService {
                 updatedUser,
                 currentProfile.friendCount()
             ),
-            FriendshipRepository.Relationship.SELF
+            Relationship.SELF
         );
     }
 
@@ -137,7 +143,7 @@ public final class UserProfileService {
 
     private UserProfileResponse toResponse(
         UserRepository.UserProfile profile,
-        FriendshipRepository.Relationship relationship
+        Relationship relationship
     ) {
         String imageUrl = profile.user().profileImageUrl() == null
             ? null
@@ -156,8 +162,10 @@ public final class UserProfileService {
         try {
             imageStorage.delete(objectKey);
         }
-        catch (RuntimeException ignored) {
-            // A failed cleanup must not invalidate a successful profile update.
+        catch (RuntimeException exception) {
+            System.err.println(
+                    "Failed to delete image during cleanup: " + objectKey
+            );
         }
     }
 }

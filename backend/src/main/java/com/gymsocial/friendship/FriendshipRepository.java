@@ -1,7 +1,10 @@
 package com.gymsocial.friendship;
 
+import com.gymsocial.friendship.database.JdbcTransactionManager;
+import com.gymsocial.friendship.enums.AcceptResult;
+import com.gymsocial.friendship.enums.Relationship;
+import com.gymsocial.friendship.enums.RequestResult;
 import com.gymsocial.shared.pagination.InstantUuidCursor;
-
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -166,78 +169,77 @@ public final class FriendshipRepository {
         """;
 
     private final DataSource dataSource;
+    private final JdbcTransactionManager javaTransactionManager;
 
-    public FriendshipRepository(DataSource dataSource) {
+    public FriendshipRepository(DataSource dataSource, JdbcTransactionManager javaTransactionManager) {
+        this.javaTransactionManager = javaTransactionManager;
         this.dataSource = dataSource;
     }
 
-    public RequestResult request(
-        long requesterUserId,
-        long receiverUserId,
-        int maximumConnections
-    ) {
-        try (var connection = dataSource.getConnection()) {
-            boolean originalAutoCommit = connection.getAutoCommit();
-            connection.setAutoCommit(false);
+    public RequestResult request(long requesterUserId, long receiverUserId, int maximumConnections) {
+        return javaTransactionManager.run((connection) ->
+                createRequest(connection, requesterUserId, receiverUserId, maximumConnections)
+        );
+    }
 
-            try {
-                if (!shareGroup(connection, requesterUserId, receiverUserId)) {
-                    connection.rollback();
-                    return RequestResult.NOT_IN_SAME_GROUP;
-                }
-
-                lockUsers(connection, requesterUserId, receiverUserId);
-                if (
-                    countConnections(connection, requesterUserId)
-                        >= maximumConnections ||
-                    countConnections(connection, receiverUserId)
-                        >= maximumConnections
-                ) {
-                    connection.rollback();
-                    return RequestResult.CONNECTION_LIMIT_REACHED;
-                }
-
-                Optional<FriendshipRow> existing = findPairForUpdate(
-                    connection,
-                    requesterUserId,
-                    receiverUserId
-                );
-                if (existing.isPresent()) {
-                    FriendshipRow friendship = existing.get();
-                    if ("ACCEPTED".equals(friendship.status())) {
-                        connection.rollback();
-                        return RequestResult.ALREADY_CONNECTED;
-                    }
-                    if ("PENDING".equals(friendship.status())) {
-                        connection.rollback();
-                        return friendship.requesterUserId() == requesterUserId
-                            ? RequestResult.ALREADY_REQUESTED
-                            : RequestResult.INCOMING_REQUEST_EXISTS;
-                    }
-                    reopen(
-                        connection,
-                        friendship.id(),
-                        requesterUserId,
-                        receiverUserId
-                    );
-                } else {
-                    insert(connection, requesterUserId, receiverUserId);
-                }
-
-                connection.commit();
-                return RequestResult.CREATED;
-            } catch (RuntimeException | SQLException exception) {
-                connection.rollback();
-                throw exception;
-            } finally {
-                connection.setAutoCommit(originalAutoCommit);
-            }
-        } catch (SQLException exception) {
-            throw new IllegalStateException(
-                "Could not create friendship request",
-                exception
-            );
+    private RequestResult createRequest(Connection connection, long requesterUserId, long receiverUserId, int maximumConnections) throws SQLException {
+        if (!shareGroup(connection, requesterUserId, receiverUserId)) {
+            return RequestResult.NOT_IN_SAME_GROUP;
         }
+
+        lockUsers(connection, requesterUserId, receiverUserId);
+
+        if (hasReachedConnectionLimit(connection, requesterUserId, receiverUserId, maximumConnections)) {
+            return RequestResult.CONNECTION_LIMIT_REACHED;
+        }
+
+        Optional<FriendshipRow> existing = findPairForUpdate(
+                connection,
+                requesterUserId,
+                receiverUserId
+        );
+
+        if (existing.isEmpty()) {
+            insert(connection, requesterUserId, receiverUserId);
+            return RequestResult.CREATED;
+        }
+
+        return handleExistingFriendship(
+                connection,
+                existing.get(),
+                requesterUserId,
+                receiverUserId
+        );
+    }
+
+    private RequestResult handleExistingFriendship(
+            Connection connection,
+            FriendshipRow friendship,
+            long requesterUserId,
+            long receiverUserId
+    ) throws SQLException {
+        if ("ACCEPTED".equals(friendship.status())) {
+            return RequestResult.ALREADY_CONNECTED;
+        }
+
+        if ("PENDING".equals(friendship.status())) {
+            return friendship.requesterUserId() == requesterUserId
+                    ? RequestResult.ALREADY_REQUESTED
+                    : RequestResult.INCOMING_REQUEST_EXISTS;
+        }
+
+        reopen(connection, friendship.id(), requesterUserId, receiverUserId);
+        return RequestResult.CREATED;
+    }
+
+    private boolean hasReachedConnectionLimit(
+            Connection connection,
+            long requesterUserId,
+            long receiverUserId,
+            int maximumConnections
+    ) throws SQLException {
+        return countConnections(connection, requesterUserId) >= maximumConnections
+                || countConnections(connection, receiverUserId) >= maximumConnections;
     }
 
     public AcceptResult accept(
@@ -591,54 +593,32 @@ public final class FriendshipRepository {
         }
     }
 
-    public enum RequestResult {
-        CREATED,
-        ALREADY_CONNECTED,
-        ALREADY_REQUESTED,
-        INCOMING_REQUEST_EXISTS,
-        CONNECTION_LIMIT_REACHED,
-        NOT_IN_SAME_GROUP
-    }
-
-    public enum AcceptResult {
-        ACCEPTED,
-        NOT_FOUND,
-        CONNECTION_LIMIT_REACHED
-    }
-
-    public enum Relationship {
-        SELF,
-        NONE,
-        PENDING_SENT,
-        PENDING_RECEIVED,
-        CONNECTED
-    }
-
-    public record IncomingRequest(
-        UUID id,
-        long requesterUserId,
-        String requesterName,
-        String requesterUsername,
-        String requesterImageKey,
-        Instant createdAt
-    ) {
-    }
-
     public record FriendConnection(
-        UUID friendshipId,
-        long userId,
-        String name,
-        String username,
-        String profileImageKey,
-        Instant connectedAt
+            UUID friendshipId,
+            long userId,
+            String name,
+            String username,
+            String profileImageKey,
+            Instant connectedAt
     ) {
     }
 
     private record FriendshipRow(
-        UUID id,
-        long requesterUserId,
-        long receiverUserId,
-        String status
+            UUID id,
+            long requesterUserId,
+            long receiverUserId,
+            String status
     ) {
     }
+
+    public record IncomingRequest(
+            UUID id,
+            long requesterUserId,
+            String requesterName,
+            String requesterUsername,
+            String requesterImageKey,
+            Instant createdAt
+    ) {
+    }
+
 }

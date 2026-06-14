@@ -9,7 +9,7 @@ import io.javalin.http.HttpStatus;
 import java.util.Map;
 import java.util.UUID;
 
-public final class FriendshipController {
+public class FriendshipController {
 
     private final FriendshipService service;
 
@@ -66,7 +66,8 @@ public final class FriendshipController {
     private UUID parseId(Context context) {
         try {
             return UUID.fromString(context.pathParam("friendshipId"));
-        } catch (IllegalArgumentException exception) {
+        }
+        catch (IllegalArgumentException exception) {
             throw new NotFoundException(
                 "Solicitação de conexão não encontrada."
             );
@@ -81,7 +82,8 @@ public final class FriendshipController {
 
         try {
             return Integer.parseInt(value);
-        } catch (NumberFormatException exception) {
+        }
+        catch (NumberFormatException exception) {
             throw new ValidationException(Map.of(
                 "limit",
                 "Informe um limite válido."

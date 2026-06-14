@@ -2,6 +2,7 @@ package com.gymsocial.friendship;
 
 import com.gymsocial.friendship.dto.FriendshipRequestResponse;
 import com.gymsocial.friendship.dto.FriendResponse;
+import com.gymsocial.friendship.enums.RequestResult;
 import com.gymsocial.shared.exception.ConflictException;
 import com.gymsocial.shared.exception.ForbiddenException;
 import com.gymsocial.shared.exception.NotFoundException;
@@ -38,36 +39,39 @@ public final class FriendshipService {
 
     public void request(long requesterUserId, String receiverCode) {
         long receiverUserId = publicIdCodec.decode(receiverCode)
-            .orElseThrow(() -> new NotFoundException(
-                "Perfil não encontrado."
-            ));
+                .orElseThrow(() -> new NotFoundException("Perfil não encontrado."));
+
         if (requesterUserId == receiverUserId) {
-            throw new ConflictException(
-                "Você não pode se conectar consigo mesmo."
-            );
+            throw new ConflictException("Você não pode se conectar consigo mesmo.");
         }
 
-        switch (repository.request(
-            requesterUserId,
-            receiverUserId,
-            MAXIMUM_CONNECTIONS
-        )) {
+        RequestResult result = repository.request(
+                requesterUserId,
+                receiverUserId,
+                MAXIMUM_CONNECTIONS
+        );
+
+        handleRequestResult(result);
+    }
+
+    private void handleRequestResult(RequestResult result) {
+        switch (result) {
             case CREATED -> {
             }
             case ALREADY_CONNECTED -> throw new ConflictException(
-                "Vocês já estão conectados."
+                    "Vocês já estão conectados."
             );
             case ALREADY_REQUESTED -> throw new ConflictException(
-                "A solicitação já foi enviada."
+                    "A solicitação já foi enviada."
             );
             case INCOMING_REQUEST_EXISTS -> throw new ConflictException(
-                "Essa pessoa já enviou uma solicitação para você."
+                    "Essa pessoa já enviou uma solicitação para você."
             );
             case CONNECTION_LIMIT_REACHED -> throw new ConflictException(
-                "Uma das pessoas já atingiu o limite de 500 conexões."
+                    "Uma das pessoas já atingiu o limite de 500 conexões."
             );
             case NOT_IN_SAME_GROUP -> throw new ForbiddenException(
-                "Você só pode se conectar com pessoas do seu grupo."
+                    "Você só pode se conectar com pessoas do seu grupo."
             );
         }
     }
