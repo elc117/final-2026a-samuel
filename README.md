@@ -1,5 +1,9 @@
 # GymSocial
 
+
+## URL 
+https://final-2026a-samuel.vercel.app/
+
 Rede social para grupos de amigos registrarem exercícios, participarem de
 desafios, comentarem check-ins e conversarem em tempo real.
 
