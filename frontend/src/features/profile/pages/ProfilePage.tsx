@@ -213,7 +213,7 @@ export function ProfilePage() {
 
                 <Link
                   to="/perfil/amigos"
-                  className="flex min-w-40 items-center gap-3 rounded-2xl bg-brand-50 px-5 py-4 text-brand-700 transition hover:bg-brand-100"
+                  className="mt-5 flex min-w-40 items-center gap-3 rounded-2xl bg-brand-50 px-5 py-4 text-brand-700 transition hover:bg-brand-100 sm:mt-6"
                 >
                   <Users size={24} />
                   <div>
