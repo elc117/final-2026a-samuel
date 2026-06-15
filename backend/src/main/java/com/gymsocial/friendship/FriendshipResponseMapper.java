@@ -27,7 +27,7 @@ public final class FriendshipResponseMapper {
             request.requesterName(),
             request.requesterUsername(),
             createImageUrl(request.requesterImageKey()),
-            request.createdAt()
+            request.createdAt().toString()
         );
     }
 
@@ -37,7 +37,7 @@ public final class FriendshipResponseMapper {
             friend.name(),
             friend.username(),
             createImageUrl(friend.profileImageKey()),
-            friend.connectedAt()
+            friend.connectedAt().toString()
         );
     }
 

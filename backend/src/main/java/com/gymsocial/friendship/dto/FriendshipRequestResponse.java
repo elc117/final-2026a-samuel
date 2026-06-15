@@ -1,6 +1,5 @@
 package com.gymsocial.friendship.dto;
 
-import java.time.Instant;
 import java.util.UUID;
 
 public record FriendshipRequestResponse(
@@ -9,6 +8,6 @@ public record FriendshipRequestResponse(
     String requesterName,
     String requesterUsername,
     String requesterImageUrl,
-    Instant createdAt
+    String createdAt
 ) {
 }
