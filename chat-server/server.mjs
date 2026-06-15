@@ -1,7 +1,10 @@
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 
-const port = Number.parseInt(process.env.CHAT_PORT ?? "7001", 10);
+const port = Number.parseInt(
+  process.env.PORT ?? process.env.CHAT_PORT ?? "7001",
+  10,
+);
 const apiUrl = process.env.API_INTERNAL_URL ?? "http://localhost:7000";
 const allowedOrigins = (
   process.env.CORS_ALLOWED_ORIGIN ??

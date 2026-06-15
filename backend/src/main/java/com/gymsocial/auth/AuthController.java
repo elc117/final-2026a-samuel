@@ -11,10 +11,16 @@ public final class AuthController {
 
     private final AuthService authService;
     private final boolean cookieSecure;
+    private final String cookieSameSite;
 
-    public AuthController(AuthService authService, boolean cookieSecure) {
+    public AuthController(
+        AuthService authService,
+        boolean cookieSecure,
+        String cookieSameSite
+    ) {
         this.authService = authService;
         this.cookieSecure = cookieSecure;
+        this.cookieSameSite = cookieSameSite;
     }
 
     public void register(Context context) {
@@ -77,7 +83,7 @@ public final class AuthController {
                 (int) maxAge,
                 cookieSecure,
                 true,
-                "Lax"
+                cookieSameSite
         );
 
         context.cookie(cookie);

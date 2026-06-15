@@ -9,6 +9,7 @@ public record ApplicationConfig(
     String hashidsSalt,
     String corsAllowedOrigin,
     boolean cookieSecure,
+    String cookieSameSite,
     String s3Endpoint,
     String s3PublicEndpoint,
     String s3AccessKey,
@@ -37,7 +38,7 @@ public record ApplicationConfig(
         }
 
         return new ApplicationConfig(
-            Integer.parseInt(optional("APP_PORT", String.valueOf(DEFAULT_PORT))),
+            Integer.parseInt(resolvePort()),
             required("DATABASE_URL"),
             required("DATABASE_USER"),
             required("DATABASE_PASSWORD"),
@@ -48,6 +49,7 @@ public record ApplicationConfig(
                 "http://localhost:5173,http://127.0.0.1:5173"
             ),
             Boolean.parseBoolean(optional("COOKIE_SECURE", "false")),
+            optional("COOKIE_SAME_SITE", "Lax"),
             required("S3_ENDPOINT"),
             required("S3_PUBLIC_ENDPOINT"),
             required("S3_ACCESS_KEY"),
@@ -69,5 +71,12 @@ public record ApplicationConfig(
 
     private static String optional(String name, String defaultValue) {
         return System.getenv().getOrDefault(name, defaultValue);
+    }
+
+    private static String resolvePort() {
+        return optional(
+            "PORT",
+            optional("APP_PORT", String.valueOf(DEFAULT_PORT))
+        );
     }
 }

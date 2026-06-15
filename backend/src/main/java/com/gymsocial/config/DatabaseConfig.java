@@ -14,8 +14,8 @@ public final class DatabaseConfig {
         hikariConfig.setJdbcUrl(appConfig.databaseUrl());
         hikariConfig.setUsername(appConfig.databaseUser());
         hikariConfig.setPassword(appConfig.databasePassword());
-        hikariConfig.setMaximumPoolSize(10);
-        hikariConfig.setMinimumIdle(2);
+        hikariConfig.setMaximumPoolSize(5);
+        hikariConfig.setMinimumIdle(0);
         hikariConfig.setConnectionTimeout(10_000);
         hikariConfig.setPoolName("gym-social-pool");
         hikariConfig.addDataSourceProperty("tcpKeepAlive", "true");

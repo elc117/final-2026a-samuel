@@ -44,7 +44,11 @@ public final class AuthModule {
         );
 
         return new Components(
-            new AuthController(authService, appConfig.cookieSecure()),
+            new AuthController(
+                authService,
+                appConfig.cookieSecure(),
+                appConfig.cookieSameSite()
+            ),
             new JwtAuthenticationMiddleware(jwtService)
         );
     }
