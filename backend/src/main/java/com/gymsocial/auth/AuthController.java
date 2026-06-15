@@ -6,12 +6,15 @@ import com.gymsocial.shared.http.AuthenticatedUserContext;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.http.Cookie;
+import io.javalin.http.SameSite;
+
+import java.util.Locale;
 
 public final class AuthController {
 
     private final AuthService authService;
     private final boolean cookieSecure;
-    private final String cookieSameSite;
+    private final SameSite cookieSameSite;
 
     public AuthController(
         AuthService authService,
@@ -20,7 +23,9 @@ public final class AuthController {
     ) {
         this.authService = authService;
         this.cookieSecure = cookieSecure;
-        this.cookieSameSite = cookieSameSite;
+        this.cookieSameSite = SameSite.valueOf(
+            cookieSameSite.trim().toUpperCase(Locale.ROOT)
+        );
     }
 
     public void register(Context context) {
@@ -76,16 +81,19 @@ public final class AuthController {
     }
 
     private void addRefreshTokenCookie(Context context, String value, long maxAge) {
-        Cookie cookie = new Cookie(
+        context.cookie(createRefreshTokenCookie(value, maxAge));
+    }
+
+    Cookie createRefreshTokenCookie(String value, long maxAge) {
+        return new Cookie(
                 RefreshTokenService.REFRESH_TOKEN_COOKIE,
                 value,
                 "/",
                 (int) maxAge,
                 cookieSecure,
                 true,
+                null,
                 cookieSameSite
         );
-
-        context.cookie(cookie);
     }
 }
