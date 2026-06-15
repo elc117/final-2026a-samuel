@@ -35,6 +35,14 @@
     font: inherit;
   }
 
+  button:not(:disabled) {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
   button,
   a {
     -webkit-tap-highlight-color: transparent;

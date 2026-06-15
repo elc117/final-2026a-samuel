@@ -167,8 +167,8 @@ export function ProfilePage() {
             </div>
 
             <div className="px-6 pb-8 sm:px-10 sm:pb-10">
-              <div className="-mt-20 flex flex-col gap-5 sm:-mt-16 sm:flex-row sm:items-end sm:justify-between">
-                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                <div className="-mt-20 flex flex-col items-start gap-4 sm:-mt-16 sm:flex-row sm:items-end">
                   <div className="relative">
                     <div className="grid size-36 overflow-hidden rounded-[2rem] border-4 border-white bg-brand-50 text-brand-600 shadow-xl">
                       {previewUrl || profile.profileImageUrl ? (
