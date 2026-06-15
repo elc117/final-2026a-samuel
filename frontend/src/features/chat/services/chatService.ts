@@ -45,6 +45,12 @@ export function getChatMessages(
 export function createChatSocket(): Socket {
   const socketUrl = import.meta.env.VITE_SOCKET_URL;
 
+  if (!socketUrl && import.meta.env.PROD) {
+    throw new Error(
+      "O endereço do servidor de chat não foi configurado.",
+    );
+  }
+
   return io(socketUrl || undefined, {
     autoConnect: false,
     auth: (callback) => {
