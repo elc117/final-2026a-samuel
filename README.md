@@ -130,29 +130,42 @@ Como imagens são bem presentes nessa aplicação, acredito que falar sobre isso
 
 ### Fluxo de envio de amizades
 
-Essa parte foi uma das mais desafiados, eu queria implementar uma transaction para a conexão de amizadades porque eu teria que fazer queries antes de de fszer a conexão para não enviar a conexão mais de uma vez. Além disso eu tinha que bloquear commits entre os dois usuários enquanto uma solicitação de conexão está sendo feita. Cada usuário usáiro pode ter no máximo 500 conexões e o usuário só pode enviar conexão para membros do grupo, eu acabai não implementando a saida do usuário do grupo. Pensando na transaction em java você não pode passar um função de callback por parâmetro, então para fazer isso eu criei uma classe chamada TransactionManager que tem o método run que recebe uma função lambda. O método run tem uma interface com o método execute, ou seja, o run recebe uma função, que no caso seria a createRequest e por debaixo dos panos, o java coloca o createRequest dentro do método execute, assim o createRequest não é executado na hora,  o método run em TransactionManager é que executa o método execute depois de ter criado a transaction. Eu não sabia desse recurso em java e pesquisando vi como implementar é algo bem interessante, embora não seja tão prático, outras lingunagens como JavaScript ou PHP são melhores para fazer isso.
+Essa parte foi uma das mais desafiadoras. Eu queria implementar uma transação para a conexão de amizades, porque eu teria que fazer queries antes de fazer a conexão para não enviar a conexão mais de uma vez. Além disso, eu tinha que bloquear commits entre os dois usuários enquanto uma solicitação de conexão estava sendo feita. Cada usuário pode ter no máximo 500 conexões, e o usuário só pode enviar conexão para membros do grupo. Eu acabei não implementando a saída do usuário do grupo. Pensando na transação em Java, você não pode passar uma função de callback por parâmetro, então, para fazer isso, eu criei uma classe chamada TransactionManager que tem o método run, que recebe uma função lambda. O método run tem uma interface com o método execute, ou seja, o run recebe uma função, que no caso seria a createRequest, e, por debaixo dos panos, o Java coloca a createRequest dentro do método execute. Assim, a createRequest não é executada na hora; o método run em TransactionManager é que executa o método execute depois de ter criado a transaction. Eu não sabia desse recurso em Java e, pesquisando, vi como implementá-lo. É algo bem interessante, embora não seja tão prático; outras linguagens como JavaScript ou PHP são melhores para fazer isso.
 
 ### Chat 
 
-Eu implementei um o chat virtual com um porém, como no js eu estou usando o socket.io que é feito em js eu tive que criar o servidor em node.js, porém toda a lógica do fluxo de chat é feito em javalin, só o servidor e a conexão é feita em node. Então do front vai para API javalin para pegar a sessão e o front envia pro servidor. a partir dai que a conexão já foi criada, o envio de mensagens funciona da seguinte forma: o front envia a mensagem pro servidor node e o servidor envia o payload para a API do javalin e a mensagem é salva no banco. Essa foi a única forma mais ou menos decente que eu consegui fazer
+Eu implementei um chat virtual com um porém: como no JS eu estou usando o socket.io, que é feito em JS, eu tive que criar o servidor em Node.js. Porém, toda a lógica do fluxo de chat é feita em Javalin; só o servidor e a conexão são feitos em Node Então, do front vai para A API Javalin para pegar a sessão, e o front envia para o servidor. A partir daí, que a conexão já foi criada, o envio de mensagens funciona da seguinte forma: o front envia a mensagem para o servidor Node, e o servidor envia o payload para a API do Javalin, e a mensagem é salva no banco. Essa foi a única forma mais ou menos decente que eu consegui fazer.
+
+Para encerar o processo de desenvolvimento, vou citar duas coisas interessantes: paginação e hashids.
+
+### Paginação
+As mensagens do chat, listagem de check-ins e amizades usam paginação. Acredito que a paginação precisa de melhorias em dois quesitos: a paginação deveria ser mais centralizada, acontece bastante repetição desnecessária e somente os check-ins e amizades usam scroll infinito. No chat é necessário clicar em um botão para abrir mais mensagens, porém essas correções não vão ser feitas até o dia 22 de junho, infelizmente. 
+
+Mas, voltando para a paginação, eu pensei em implementar a "simple paginate", ou seja, ela não conta o número total de registros; a simple paginate usa o HasMorePages para saber se existem mais páginas ou não. Funciona assim: na query é buscado o pageSize + 1. Se results.size() for maior que pageSize, significa que existem mais registros disponíveis além dos retornados na página atual. Nesse caso, hasMorePages deve ser definido como true. Mas, antes de enviar para o front, faço um split para não retornar o último registro. Dessa forma, não agride o servidor contando todos os registros no banco. 
+
+### Hashids
+
+Atualmente, muitas APIs não usam mais o id, e sim UUID, porque é muito perigoso expor o id do usuário no front. Então, em vez de mandar o id para o front, é mandado o UUID, porém o custo de leitura e escrita é bem maior. O PostgreSQL tem uma forma de diminuir esse custo. Eu li um artigo sobre isso, mas não estou encontrando ele mais. Dessa forma, como a maioria das entidades não vai ter muita leitura ou escrita, deixei todas com UUID, exceto a tabela de usuários, que usa ID. Então o ID é hasheado no front; a classe "PublicIdCodec" é que cuida disso. Quem é responsável por codificar o ID é a lib Hashids, que é do próprio Java. Embora não seja a melhor solução do mundo, é melhor do que expor o id no front.
 
 
-#;# URL 
-https://final-2026a-samuel.vercel.app/
+## Diagrama de classes 
+Eu usei o mermaid para criar o diagrama de classes porque ele permite criar diagramas usando marckdown e é gratuito. Como o diagrama ficou muito grande eu coloquei no diretório docs/diagramas
 
-Rede social para grupos de amigos registrarem exercícios, participarem de
-desafios, comentarem check-ins e conversarem em tempo real.
 
-## Desenvolvimento local
+## Uso de IA
+Eu basicamente usei codex e chatGPT para criar tudo, eles me ajudaram na criação dos testes, implementações etc. O codex me ajudou a montar a estrutura de diretórios, ele criou o diagrama de classes em markdown. 
+
+
+## Orientações para execução: instalação de dependências
 
 1. Copie `.env.example` para `.env`.
 2. Execute:
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
-3. Em outro terminal:
+3. Para rodar o projeto no front-end:
 
 ```bash
 cd frontend
@@ -165,3 +178,10 @@ Frontend: http://localhost:5173
 API: http://localhost:7000
 
 Chat: http://localhost:7001
+
+A url de producção é essa: https://final-2026a-samuel.vercel.app/
+
+
+## Resultado final
+<img src="./video-pratica.gif" width="600">
+
