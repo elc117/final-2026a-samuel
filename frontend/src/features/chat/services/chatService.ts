@@ -31,14 +31,13 @@ export function getChatSession(): Promise<ChatSession> {
   return apiRequest<ChatSession>("/chat/session");
 }
 
-export function getChatMessages(
-  cursor?: string | null,
-  limit = 30,
-): Promise<ChatMessagePage> {
+export function getChatMessages(cursor?: string | null, limit = 30): Promise<ChatMessagePage> {
   const params = new URLSearchParams({ limit: String(limit) });
+
   if (cursor) {
     params.set("cursor", cursor);
   }
+  
   return apiRequest<ChatMessagePage>(`/chat/messages?${params.toString()}`);
 }
 
@@ -59,11 +58,9 @@ export function createChatSocket(): Socket {
   });
 }
 
-export function sendChatMessage(
-  socket: Socket,
-  content: string,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
+export function sendChatMessage(socket: Socket, content: string): Promise<void> {
+  return new Promise((resolve, reject) => 
+  {
     socket.timeout(10_000).emit(
       "chat:send",
       { content },
@@ -72,12 +69,14 @@ export function sendChatMessage(
           reject(new Error("O chat demorou para responder."));
           return;
         }
+        
         if (!result?.ok) {
           reject(new Error(
             result?.message ?? "Não foi possível enviar a mensagem.",
           ));
           return;
         }
+        
         resolve();
       },
     );
