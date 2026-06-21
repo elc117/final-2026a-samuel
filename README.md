@@ -183,5 +183,5 @@ A url de producção é essa: https://final-2026a-samuel.vercel.app/
 
 
 ## Resultado final
-<img src="./video-pratica.gif" width="600">
+<img src="./docs/video.gif" width="600">
 
