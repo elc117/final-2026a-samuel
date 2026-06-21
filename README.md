@@ -120,16 +120,24 @@ Antes de entrar no fluxo de autenticação no back-end, vou falar como funciona 
 
 Organizei a criação e composição das dependências nos arquivos de configuração. Não é igual ao Spring Boot, que automatiza esse processo por meio de um container de injeção de dependências; nesse projeto, a composição é feita manualmente. As classes permanecem organizadas nos diretórios correspondentes às suas responsabilidades, enquanto os arquivos de configuração centralizam a criação das instâncias e a passagem de suas dependências. Dessa forma, o acoplamento fica mais explícito e a aplicação mantém uma estrutura semelhante à injeção de dependências, porém sem framework.
 
-Tem o próprio Application.java, que é responsável por startar o servidor, e dentro da main tem a classe ApplicationConfig, que se concentra na leitura e validação das variáveis de ambiente.
+Tem o próprio Application.java, que é responsável por startar o servidor, e dentro da main tem a classe ApplicationConfig, que se concentra na leitura e validação das variáveis de ambiente. Essa parte foi bem chata de se fazer, para fazer algo mais automátizado eu teria que ter mais conhecimento e tempo para fazer.
 
 Dentro do Application também tem o ApplicationModule, que é o ponto central de composição da aplicação. Nele são criadas as dependências compartilhadas, como DataSource, ImageStorage e PublicIdCodec, que são passadas explicitamente para os módulos de cada domínio. Cada módulo, como AuthModule, instancia seus repositórios, serviços, controllers e middlewares, conectando suas dependências por construtor. Os módulos retornam apenas os componentes necessários para a configuração das rotas. Por fim, JavalinConfig e RouteConfig recebem esses componentes para configurar o servidor e registrar os endpoints. Agora, podendo voltar para o fluxo de autenticação, a middleware é instanciada na classe de configuração rotas, RouteConfig. Ela é chamada nas rotas que precisam de validação. Além disso, eu criei uma classe chamada AuthenticatedUserContext, que é a mesma ideia do SecurityContextHolder do Spring Security.
 
 ### Fluxo de uplaod de imagens
-Como imagens são bem presentes nessa aplicação, acredito que falar sobre isso é importante
+Como imagens são bem presentes nessa aplicação, acredito que falar sobre isso é importante. eu Criei um bucket no Minio para armazenar as imagens e no banco de dados de dados somente as informações das imagens são salvas no banco. O upload de imagens é feito de uma vez, não é por partes então eu limitei o tamanho da imagem e antes de enviar para o back-end eu faço a compressão. Eu faço a validação no front e no back-end para que não tenha risco de alguém enviar um arquivo.php malicioso por exemplo, então os tipos válidos são png, jpg e webp eu válido tanto no back quanto no front.
 
 
+### Fluxo de envio de amizades
 
-## URL 
+Essa parte foi uma das mais desafiados, eu queria implementar uma transaction para a conexão de amizadades porque eu teria que fazer queries antes de de fszer a conexão para não enviar a conexão mais de uma vez. Além disso eu tinha que bloquear commits entre os dois usuários enquanto uma solicitação de conexão está sendo feita. Cada usuário usáiro pode ter no máximo 500 conexões e o usuário só pode enviar conexão para membros do grupo, eu acabai não implementando a saida do usuário do grupo. Pensando na transaction em java você não pode passar um função de callback por parâmetro, então para fazer isso eu criei uma classe chamada TransactionManager que tem o método run que recebe uma função lambda. O método run tem uma interface com o método execute, ou seja, o run recebe uma função, que no caso seria a createRequest e por debaixo dos panos, o java coloca o createRequest dentro do método execute, assim o createRequest não é executado na hora,  o método run em TransactionManager é que executa o método execute depois de ter criado a transaction. Eu não sabia desse recurso em java e pesquisando vi como implementar é algo bem interessante, embora não seja tão prático, outras lingunagens como JavaScript ou PHP são melhores para fazer isso.
+
+### Chat 
+
+Eu implementei um o chat virtual com um porém, como no js eu estou usando o socket.io que é feito em js eu tive que criar o servidor em node.js, porém toda a lógica do fluxo de chat é feito em javalin, só o servidor e a conexão é feita em node. Então do front vai para API javalin para pegar a sessão e o front envia pro servidor. a partir dai que a conexão já foi criada, o envio de mensagens funciona da seguinte forma: o front envia a mensagem pro servidor node e o servidor envia o payload para a API do javalin e a mensagem é salva no banco. Essa foi a única forma mais ou menos decente que eu consegui fazer
+
+
+#;# URL 
 https://final-2026a-samuel.vercel.app/
 
 Rede social para grupos de amigos registrarem exercícios, participarem de
