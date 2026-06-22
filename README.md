@@ -183,5 +183,11 @@ A url de producção é essa: https://final-2026a-samuel.vercel.app/
 
 
 ## Resultado final
-<img src="/docs/video.gif" width="900">
+<img src="./docs/video.gif" width="900">
 
+
+## Fontes e cŕeditos
+https://www.devmedia.com.br/como-usar-funcoes-lambda-em-java/32826
+https://mermaid.live/edit
+https://dev.to/danielasaboro/security-isnt-all-rosy-what-i-learnt-from-participating-in-treblle-api-hackathon-1kok
+https://auth0.com/docs/secure/tokens/refresh-tokens/refresh-token-rotation
